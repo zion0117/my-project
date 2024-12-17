@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 import Workout from './workout.js';
+import Muscleselection from './muscleselection.js';
 
 
 function App() {
@@ -25,7 +26,7 @@ function App() {
         )}
 
 
-      
+
       </header>
     </div>
   );
@@ -47,13 +48,40 @@ function Dashboard() {
       }
     });
   };
+  const exercises = [
+  {
+    id: 1,
+    name: "푸쉬업",
+    targetMuscles: ["가슴", "어깨", "팔근육"],
+  },
+  {
+    id: 2,
+    name: "플랭크",
+    targetMuscles: ["복부", "허리"],
+  },
+  {
+    id: 3,
+    name: "데드리프트",
+    targetMuscles: ["등", "허리", "허벅지"],
+  },
+  {
+    id: 4,
+    name: "스쿼트",
+    targetMuscles: ["허벅지", "종아리", "발목"],
+  },
+  {
+    id: 5,
+    name: "팔굽혀 펴기",
+    targetMuscles: ["가슴", "팔근육"],
+  },
+];
   const startWorkout = () => {
   if (selectedMuscles.length === 0) {
     alert("먼저 운동할 근육을 선택해주세요!");
     return;
   }
   // 선택된 근육 정보를 전달하거나, 운동 페이지로 이동
-  navigate('/workout', { state: { muscles: selectedMuscles } }); // 운동 페이지로 이동
+  navigate('/muscleselection', { state: { muscles: selectedMuscles } }); // 운동 페이지로 이동
 };
   return (
     <div>
@@ -180,6 +208,7 @@ function AppWithRouter() {
         <Route path="/" element={<App />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/workout" element={<Workout />} />
+        <Route path="/muscleselection" element={<Muscleselection />} />
       </Routes>
     </Router>
   );
