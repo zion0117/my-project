@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 import Workout from './workout.js';
+import Animationtest from './animationtest.js';
+import Feedback from './feedback.js';
 
 
 function App() {
@@ -25,7 +27,7 @@ function App() {
         )}
 
 
-      
+
       </header>
     </div>
   );
@@ -180,6 +182,8 @@ function AppWithRouter() {
         <Route path="/" element={<App />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/workout" element={<Workout />} />
+        <Route path="/animationtest" element={<Animationtest />} />
+        <Route path="/feedback" element={<Feedback />} />
       </Routes>
     </Router>
   );
