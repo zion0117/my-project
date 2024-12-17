@@ -207,6 +207,7 @@ function Workout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
       <h1>운동 자세 분석</h1>
+      <h2>현재 프레임: {currentFrame + 1}</h2>
       <h3>점수: {Math.round(score)}</h3> {/* 총 점수 출력 */}
       <h3>피드백: {feedback}</h3>
       {exerciseComplete ? (
