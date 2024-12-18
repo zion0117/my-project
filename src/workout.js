@@ -155,57 +155,91 @@ const nextExercise = () => {
     }
 
     // 자세별 피드백 (근육별로 분석)
-    if (userLandmarks) {
+
+      if (userLandmarks) {
       // 팔꿈치 각도 (wrist -> elbow -> shoulder)
       const elbowAngle = calculateAngle(userLandmarks[5], userLandmarks[7], userLandmarks[9]);
-      if (elbowAngle < 150 && !evaluatedFeedback.includes('팔꿈치를 더 구부려 주세요.')) {
-        feedbackText += '팔꿈치를 더 구부려 주세요.\n';
-        setEvaluatedFeedback((prev) => [...prev, '팔꿈치를 더 구부려 주세요.']);
+      if (elbowAngle < 150) {
+        if (!evaluatedFeedback.includes('팔꿈치를 더 구부려 주세요.')) {
+          feedbackText += '팔꿈치를 더 구부려 주세요.\n';
+          setEvaluatedFeedback((prev) => [...prev, '팔꿈치를 더 구부려 주세요.']);
+        }
+        // 각도 차이에 비례하여 점수 차감 (각도가 작을수록 점수 차감)
+        frameScore -= Math.max(0, (150 - elbowAngle) / 10);  // 각도 차이에 비례하여 점수 차감
       } else {
-        frameScore += 10;
+        // 각도가 150도 이상일 경우 점수 부여
+        let score = Math.min(10, (elbowAngle - 150) / 5);  // 각도가 150도를 넘으면 점수 부여
+        score = Math.max(0, score);  // 점수는 0 이상이어야 함
+        frameScore += score;
         maxFrameScore += 10;
       }
 
       // 무릎 각도 (hip -> knee -> ankle)
       const kneeAngle = calculateAngle(userLandmarks[12], userLandmarks[14], userLandmarks[16]);
-      if (kneeAngle < 150 && !evaluatedFeedback.includes('무릎을 더 구부려 주세요.')) {
-        feedbackText += '무릎을 더 구부려 주세요.\n';
-        setEvaluatedFeedback((prev) => [...prev, '무릎을 더 구부려 주세요.']);
+      if (kneeAngle < 150) {
+        if (!evaluatedFeedback.includes('무릎을 더 구부려 주세요.')) {
+          feedbackText += '무릎을 더 구부려 주세요.\n';
+          setEvaluatedFeedback((prev) => [...prev, '무릎을 더 구부려 주세요.']);
+        }
+        frameScore -= Math.max(0, (150 - kneeAngle) / 10);  // 각도 차이에 비례하여 점수 차감
       } else {
-        frameScore += 10;
+        // 각도가 150도를 넘으면 점수 부여
+        let score = Math.min(10, (kneeAngle - 150) / 5); // 각도가 150도를 넘으면 점수 부여
+        score = Math.max(0, score);  // 점수는 0 이상이어야 함
+        frameScore += score;
         maxFrameScore += 10;
       }
 
       // 어깨 각도 (elbow -> shoulder -> hip)
       const shoulderAngle = calculateAngle(userLandmarks[5], userLandmarks[6], userLandmarks[11]);
-      if (shoulderAngle > 150 && !evaluatedFeedback.includes('어깨를 더 내리세요.')) {
-        feedbackText += '어깨를 더 내리세요.\n';
-        setEvaluatedFeedback((prev) => [...prev, '어깨를 더 내리세요.']);
+      if (shoulderAngle > 150) {
+        if (!evaluatedFeedback.includes('어깨를 더 내리세요.')) {
+          feedbackText += '어깨를 더 내리세요.\n';
+          setEvaluatedFeedback((prev) => [...prev, '어깨를 더 내리세요.']);
+        }
+        // 어깨 각도가 크면 점수 차감
+        frameScore -= Math.max(0, (shoulderAngle - 150) / 10);
       } else {
-        frameScore += 10;
+        // 어깨 각도가 150도 미만일 때 점수 부여
+        let score = Math.min(10, (150 - shoulderAngle) / 5); // 어깨 각도가 150도 미만일 때 점수 부여
+        score = Math.max(0, score);  // 점수는 0 이상이어야 함
+        frameScore += score;
         maxFrameScore += 10;
       }
 
       // 고관절 각도 (knee -> hip -> shoulder)
       const hipAngle = calculateAngle(userLandmarks[12], userLandmarks[11], userLandmarks[23]);
-      if (hipAngle < 90 && !evaluatedFeedback.includes('고관절을 더 열어 주세요.')) {
-        feedbackText += '고관절을 더 열어 주세요.\n';
-        setEvaluatedFeedback((prev) => [...prev, '고관절을 더 열어 주세요.']);
+      if (hipAngle < 90) {
+        if (!evaluatedFeedback.includes('고관절을 더 열어 주세요.')) {
+          feedbackText += '고관절을 더 열어 주세요.\n';
+          setEvaluatedFeedback((prev) => [...prev, '고관절을 더 열어 주세요.']);
+        }
+        frameScore -= Math.max(0, (90 - hipAngle) / 10);  // 고관절 각도가 작을수록 점수 차감
       } else {
-        frameScore += 10;
+        // 고관절 각도가 90도를 넘으면 점수 부여
+        let score = Math.min(10, (hipAngle - 90) / 5); // 고관절 각도가 90도를 넘으면 점수 부여
+        score = Math.max(0, score);  // 점수는 0 이상이어야 함
+        frameScore += score;
         maxFrameScore += 10;
       }
 
       // 발목 각도 (knee -> ankle -> foot)
       const ankleAngle = calculateAngle(userLandmarks[14], userLandmarks[16], userLandmarks[18]);
-      if (ankleAngle < 160 && !evaluatedFeedback.includes('발목을 더 굽혀 주세요.')) {
-        feedbackText += '발목을 더 굽혀 주세요.\n';
-        setEvaluatedFeedback((prev) => [...prev, '발목을 더 굽혀 주세요.']);
+      if (ankleAngle < 160) {
+        if (!evaluatedFeedback.includes('발목을 더 굽혀 주세요.')) {
+          feedbackText += '발목을 더 굽혀 주세요.\n';
+          setEvaluatedFeedback((prev) => [...prev, '발목을 더 굽혀 주세요.']);
+        }
+        frameScore -= Math.max(0, (160 - ankleAngle) / 10);  // 발목 각도가 작을수록 점수 차감
       } else {
-        frameScore += 10;
+        // 발목 각도가 160도를 넘으면 점수 부여
+        let score = Math.min(10, (ankleAngle - 160) / 5); // 발목 각도가 160도를 넘으면 점수 부여
+        score = Math.max(0, score);  // 점수는 0 이상이어야 함
+        frameScore += score;
         maxFrameScore += 10;
       }
     }
+
 
     // 점수 평균화 (100점 만점)
     const normalizedScore = (frameScore / maxFrameScore) * 100;
@@ -267,7 +301,7 @@ const nextExercise = () => {
       }
     };
 
-    
+
 
     const interval = setInterval(() => {
       processWebcam();
