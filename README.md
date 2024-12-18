@@ -1,70 +1,50 @@
-# Getting Started with Create React App
+# 운동 자세 분석 및 피드백 시스템
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+이 프로젝트는 사용자가 자신의 운동 동작을 실시간으로 확인하고, 선택한 운동과 비교할 수 있는 시스템입니다. 웹캠을 이용해 사용자의 운동 자세를 분석하고, 올바른 운동 자세를 유지할 수 있도록 피드백을 제공하며, Mixamo 애니메이션을 통해 운동을 시뮬레이션합니다.
 
-## Available Scripts
+## 주요 기능
 
-In the project directory, you can run:
+### 1. 운동 동작 비교 및 피드백
+- 사용자가 웹캠을 통해 자신의 운동을 실시간으로 촬영합니다.
+- **Mixamo**에서 다운로드한 3D 캐릭터 애니메이션을 사용하여 운동을 시뮬레이션합니다.
+- 사용자는 자신의 운동 자세와 캐릭터 애니메이션을 비교할 수 있습니다.
+- 운동 자세가 올바르게 이루어졌는지 체크하고, 잘못된 자세에 대한 피드백을 제공합니다.
+- **OpenPose**와 같은 모션 인식 기술을 활용하여 사용자의 신체 자세를 분석하고, 이를 Mixamo 애니메이션과 비교합니다.
 
-### `npm start`
+### 2. 운동 추천 시스템
+- 사용자가 특정 근육 그룹을 선택하면, 해당 근육을 타겟으로 하는 운동을 추천합니다.
+- 운동은 좌표값과 각 운동이 타겟하는 근육에 맞게 매핑됩니다.
+- 예를 들어, **복근**을 타겟으로 하는 운동을 선택하면, 해당 근육을 강화하는 운동이 리스트로 제공됩니다.
+- 추천된 운동을 실시간으로 보여주고, 사용자는 자신의 운동이 얼마나 정확하게 수행되었는지를 확인할 수 있습니다.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 3. 운동 분석 및 기록
+- 각 운동 동작에 대한 **좌표값**과 **각 운동이 타겟하는 근육 정보**를 저장합니다.
+- 사용자가 여러 개의 운동을 선택하면, 시스템은 해당 근육에 맞는 운동을 출력하고, 사용자가 선택한 운동을 기록하여 분석할 수 있습니다.
+- **운동 완료율**, **정확도** 등을 기록하여 운동의 효과성을 추적할 수 있습니다.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 4. 실시간 운동 자세 비교
+- 웹캠을 통해 사용자의 운동 자세를 실시간으로 분석하고, 화면에 Mixamo 캐릭터의 동작을 비교하여 정확도를 확인합니다.
+- 사용자가 특정 자세를 취할 때, 해당 자세가 Mixamo 캐릭터 애니메이션에서 어떻게 나타나는지를 비교하고 피드백을 제공합니다.
+- 이를 통해 사용자는 운동을 제대로 수행하고 있는지, 잘못된 부분은 무엇인지를 실시간으로 알 수 있습니다.
 
-### `npm test`
+## 기술 스택
+- **React**: 사용자 인터페이스(UI) 구현
+- **WebCam API**: 웹캠에서 비디오 스트림을 가져와 운동 자세를 촬영
+- **Mixamo**: 운동 애니메이션을 제공하고 이를 3D 캐릭터 모델에 적용
+- **OpenPose**: 사용자의 신체 자세를 인식하고 좌표를 추출하여 비교
+- **WebGL/OpenGL**: 3D 애니메이션을 화면에 렌더링하여 캐릭터의 운동 동작을 표시
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 운동 동작 구현 방식
+- 각 운동 동작에 대해 **3D 좌표**를 정의하고, 이를 기반으로 Mixamo 애니메이션과 비교합니다.
+- 사용자가 운동을 할 때, 해당 동작을 실시간으로 추적하여 **피드백**을 제공합니다.
+- 실시간 비디오 피드를 통해 사용자와 캐릭터가 동시에 움직이며 비교할 수 있도록 합니다.
 
-### `npm run build`
+## 운동 데이터 저장 및 분석
+- 운동의 좌표값과 타겟 근육 정보를 데이터베이스에 저장하여 나중에 분석하거나 맞춤형 운동을 추천할 수 있습니다.
+- 운동의 정확도, 각도 변화, 동작의 흐름 등을 측정하고 기록하여 사용자에게 더 나은 운동을 유도합니다.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 사용자 경험 향상
+- 사용자에게 실시간 피드백을 제공하여 운동 정확성을 높이고, 운동의 효과를 최적화합니다.
+- 운동이 잘못된 자세로 수행될 경우, 캐릭터 애니메이션을 통해 수정 방향을 제시하거나, 텍스트로 피드백을 제공할 수 있습니다.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+이 시스템은 운동 자세 인식, 실시간 피드백, 운동 추천 시스템 등을 통합하여 사용자가 더욱 효율적으로 운동할 수 있도록 도와주는 운동 코치 역할을 합니다.
