@@ -4,6 +4,16 @@ import * as poseDetection from '@tensorflow-models/pose-detection'; // TensorFlo
 import * as tf from '@tensorflow/tfjs'; // TensorFlow.js
 import '@tensorflow/tfjs-backend-webgl'; // WebGL 백엔드 사용 (WebGPU 사용 시 변경 가능)
 
+
+function processWebcam() {
+    const videoElement = document.querySelector('video');
+    if (videoElement && videoElement.videoWidth) {
+        const width = videoElement.videoWidth;
+        // 웹캠 비디오를 처리하는 코드
+    } else {
+        console.error("웹캠 비디오를 찾을 수 없습니다.");
+    }
+}
 function Workout() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [score, setScore] = useState(0);  // 총 점수
