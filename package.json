@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/pose": "^0.3.1621277220",
     "@react-three/fiber": "^8.12.0",
     "cra-template": "^1.2.0",
     "react-dom": "^18.2.0",
