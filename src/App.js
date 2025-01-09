@@ -4,26 +4,36 @@ import './App.css';
 import Workout from './workout.js';
 import Animationtest from './animationtest.js';
 import Feedback from './feedback.js';
-
+import React from "react";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+const CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태를 관리
   const navigate = useNavigate();
-  const handleLogin = () => {
-    setIsLoggedIn(true); // 로그인 상태로 변경
-    navigate('/dashboard');
-  };
+  const [loggedIn, setLoggedIn] = useState(false);
+  const CLIENT_ID = process.env.REACT_APP_GOOGLE_ID;
+  const REDIRECT_URI = "http://localhost:3000";
+  const SCOPE = process.env.REACT_APP_GOOGLE_SCOPE;
+  const handleGoogleLogin = () => {
+  const googleOAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}`;
+
+
+  window.location.href = googleOAuthUrl;
+};
+
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>시니어 셀프 PT</h1> {/* 제목 추가 */}
-
-        {isLoggedIn ? (
-          <p>로그인 성공</p> // 로그인 상태일 때 표시할 메시지
-        ) : (
-          <button onClick={handleLogin}>로그인</button> // 로그인 버튼
-        )}
+        {loggedIn ? (
+        <div>
+          <p>Google로 로그인했습니다!</p>
+        </div>
+      ) : (
+        <button onClick={handleGoogleLogin}>Google로 로그인</button>
+      )}
 
 
 
