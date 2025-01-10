@@ -4,16 +4,6 @@ import * as poseDetection from '@tensorflow-models/pose-detection'; // TensorFlo
 import * as tf from '@tensorflow/tfjs'; // TensorFlow.js
 import '@tensorflow/tfjs-backend-webgl'; // WebGL 백엔드 사용 (WebGPU 사용 시 변경 가능)
 
-
-function processWebcam() {
-    const videoElement = document.querySelector('video');
-    if (videoElement && videoElement.videoWidth) {
-        const width = videoElement.videoWidth;
-        // 웹캠 비디오를 처리하는 코드
-    } else {
-        console.error("웹캠 비디오를 찾을 수 없습니다.");
-    }
-}
 function Workout() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [score, setScore] = useState(0);  // 총 점수
@@ -36,78 +26,28 @@ function Workout() {
 
   const navigate = useNavigate();
 
-  // 운동 데이터
-const muscleExercises = {
-    가슴: [
-      { name: '푸쉬업', guideVideo: '/highknee.mp4' },
-      { name: '체스트 프레스', guideVideo: '/highknee.mp4' },
-      { name: '딥스', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    어깨: [
-      { name: '숄더 프레스', guideVideo: '/highknee.mp4' },
-      { name: '사이드 레터럴 레이즈', guideVideo: '/highknee.mp4' },
-      { name: '프론트 레이즈', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    복부: [
-      { name: '크런치', guideVideo: '/highknee.mp4' },
-      { name: '플랭크', guideVideo: '/highknee.mp4' },
-      { name: '레그 레이즈', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    팔근육: [
-      { name: '바이셉 컬', guideVideo: '/highknee.mp4' },
-      { name: '트라이셉 딥', guideVideo: '/highknee.mp4' },
-      { name: '해머 컬', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    허벅지: [
-      { name: '스쿼트', guideVideo: '/highknee.mp4' },
-      { name: '런지', guideVideo: '/highknee.mp4' },
-      { name: '레그 프레스', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    팔목: [
-      { name: '팔목 스트레칭', guideVideo: '/highknee.mp4' },
-      { name: '손목 컬', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    발목: [
-      { name: '발목 돌리기', guideVideo: '/highknee.mp4' },
-      { name: '발목 플렉스', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    허리: [
-      { name: '백 익스텐션', guideVideo: '/highknee.mp4' },
-      { name: '코브라 스트레칭', guideVideo: '/highknee.mp4' },
-      { name: '슈퍼맨 자세', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    종아리: [
-      { name: '카프 레이즈', guideVideo: '/highknee.mp4' },
-      { name: '스탠딩 카프 스트레칭', guideVideo: '/highknee.mp4' },
-      { name: '시티드 카프 레이즈', guideVideo: '/highknee.mp4' }, // 추가
-    ],
-    };
-
-  // TensorFlow.js가 준비되었는지 확인하고 백엔드 초기화
+  // TensorFlow.js 초기화
   useEffect(() => {
-    const initializeTensorFlow = async () => {
-      await tf.ready(); // TensorFlow가 준비될 때까지 기다림
-      await tf.setBackend('webgl'); // WebGPU 백엔드 사용 시 'webgpu'로 설정 가능
-      console.log('TensorFlow.js WebGL backend is ready!');
-
-      const poseDetector = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
+    tf.ready().then(() => {
+      poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
         runtime: 'tfjs',
         modelType: 'lite',
-      });
-      setDetector(poseDetector); // 모델 초기화 후 설정
-    };
-
-    initializeTensorFlow();
+      }).then(setDetector);
+    });
   }, []);
 
-  // 선택된 근육에 따라 운동 설정
+  //웹캠 초기화
   useEffect(() => {
-  if (selectedMuscles.length > 0) {
-    const selected = selectedMuscles.flatMap((muscle) => muscleExercises[muscle] || []);
-    const shuffledExercises = [...selected].sort(() => 0.5 - Math.random());
-    setSelectedExercises(shuffledExercises.slice(0, 10)); // 10개 운동 랜덤 선택
-  }
-}, [selectedMuscles]);
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    });
+  }, []);
+
+
+
+
+
+  
 
 // 다음 운동으로 이동
 const nextExercise = () => {
@@ -119,20 +59,9 @@ const nextExercise = () => {
 };
 
 
-  // 웹캠 초기화
-  useEffect(() => {
-    const initWebcam = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    };
-    initWebcam();
-  }, []);
-
   // 각도 계산 함수
   const calculateAngle = (point1, point2, point3) => {
-    const angle = Math.atan2(point3.y - point2.y, point3.x - point2.x) - Math.atan2(point1.y - point2.y, point1.x - point2.x);
+    const angle = Math.atan2(point3.y - point2.y, point3.x - point2.x) -  Math.atan2(point1.y - point2.y, point1.x - point2.x);
     return Math.abs((angle * 180) / Math.PI);
   };
 
@@ -157,11 +86,12 @@ const nextExercise = () => {
             // 피드백을 추가하기 전에 이미 피드백이 기록되었는지 확인
             if (!evaluatedFeedback.includes('자세를 조금 더 조정해보세요!')) {
               feedbackText += '자세를 조금 더 조정해보세요!\n';
-              setEvaluatedFeedback((prev) => [...prev, '자세를 조금 더 조정해보세요!']);
+              setEvaluatedFeedback((prev) => [...prev, feedbackText]);
             }
           }
         }
       });
+      return { frameScore, feedbackText, maxFrameScore };
     }
 
     // 자세별 피드백 (근육별로 분석)
@@ -172,7 +102,7 @@ const nextExercise = () => {
       if (elbowAngle < 150) {
         if (!evaluatedFeedback.includes('팔꿈치를 더 구부려 주세요.')) {
           feedbackText += '팔꿈치를 더 구부려 주세요.\n';
-          setEvaluatedFeedback((prev) => [...prev, '팔꿈치를 더 구부려 주세요.']);
+          setEvaluatedFeedback((prev) => [...prev, feedbackText]);
         }
         // 각도 차이에 비례하여 점수 차감 (각도가 작을수록 점수 차감)
         frameScore -= Math.max(0, (150 - elbowAngle) / 10);  // 각도 차이에 비례하여 점수 차감
