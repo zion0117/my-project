@@ -1,5 +1,5 @@
 // 선택된 근육에 따른 운동 -> 랜덤으로 운동 10개 선택
-const muscleExercises = {
+const muscleTable = {
   가슴: ['푸쉬업', '체스트 프레스', '딥스'],
   어깨: ['숄더 프레스', '사이드 레터럴 레이즈', '프론트 레이즈'],
   복부: ['크런치', '플랭크', '레그 레이즈'],
@@ -12,21 +12,17 @@ const muscleExercises = {
 };
 
 // 운동별 데이터
-const feedback = {
+const exerciseTables = {
   sitToStand: {
-    keypoints: { joint1: 11, joint2: 13, joint3: 15 }, //관절(엉덩이, 무릎, 발목)->angle
-    phases: { //단계->카운트
-      DOWN: (angle) => angle <= 90, 
-      UP: (angle) => angle >= 180, 
-    },
-    feedback: { //피드백->출력+점수
+    keypoints: { joint1: 11, joint2: 13, joint3: 15 }, 
+    stages: { 
       DOWN: {
-        condition: (angle) => angle < 110 && angle >= 90, 
-        message: "무릎을 더 굽히세요!",
+        condition: (angle) => angle <= 90,
+        feedback: (angle) => angle < 110 && angle >= 90 ? "무릎을 더 굽히세요!" : "",
       },
       UP: {
-        condition: (angle) => angle > 160 && angle <= 180,
-        message: "완전히 일어서세요!",
+        condition: (angle) => angle >= 180,
+        feedback: (angle) => angle > 160 && angle <= 180 ? "완전히 일어서세요!" : "",
       },
     },
   },

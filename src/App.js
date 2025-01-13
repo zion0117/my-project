@@ -22,11 +22,16 @@ function App() {
   window.location.href = googleOAuthUrl;
 };
 
+const skipLogin = () => {
+  // 로그인 과정을 건너뛰고 Dashboard 페이지로 이동
+  navigate("/dashboard");
+};
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>시니어 셀프 PT</h1> {/* 제목 추가 */}
+        <button onClick={skipLogin}>로그인 건너뛰기</button>
         {loggedIn ? (
         <div>
           <p>Google로 로그인했습니다!</p>
