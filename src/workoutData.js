@@ -1,4 +1,4 @@
-// 선택된 근육에 따른 운동 -> 랜덤으로 운동 10개 선택
+// 근육별 운동
 const muscleTable = {
   가슴: ['푸쉬업', '체스트 프레스', '딥스'],
   어깨: ['숄더 프레스', '사이드 레터럴 레이즈', '프론트 레이즈'],
@@ -26,4 +26,15 @@ const exerciseTables = {
       },
     },
   },
+
+  //오류 방지용 더미데이터터
+  default: {
+    keypoints: { joint1: 0, joint2: 0, joint3: 0 },
+    stages: {
+      DOWN: { condition: () => false, feedback: () => '' },
+      UP: { condition: () => false, feedback: () => '' },
+    },
+  },
 };
+
+export { muscleTable, exerciseTables };
