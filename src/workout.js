@@ -3,147 +3,212 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { muscleTable, exerciseTables } from './workoutData';
+import { muscleTable, exerciseTables } from './workoutData.js';
 
 function Workout() {
-  const { state } = useLocation(); 
-  const myMuscles = state?.muscles || [];
+  const { state } = useLocation();
   const navigate = useNavigate();
+  const myMuscles = state?.muscles || [];
 
+  // 상태 관리
   const [score, setScore] = useState(0);
-  const previousStateRef = useRef(null); // 이전 상태 저장
-  const transitionCountRef = useRef(0); // 전환 카운트 저장
   const [count, setCount] = useState(0);
-  const [myExercises, setMyExercises] = useState([]);
-  const [exercise, setExercise] = useState(0);
-  const [detector, setDetector] = useState(null);
+  const [exerciseIndex, setExerciseIndex] = useState(0);
+  const [exerciseList, setExerciseList] = useState([]);
 
-  const webcamRef = useRef(null); 
-  const webcamCanvasRef = useRef(null); 
+  // 참조
+  const detectorRef = useRef(null);
+  const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
+  const previousStateRef = useRef(null);
+  const transitionCountRef = useRef(0);
 
-  //myMuscles->myExercises
+  const edges = [
+    [5, 6], [5, 11], [6, 12], [11, 12], [11, 13], [13, 15],
+    [12, 14], [14, 16], [5, 7], [7, 9], [6, 8], [8, 10],
+  ];
+
+  // 초기 설정: 운동 목록 생성
   useEffect(() => {
-    const preMyExercises = myMuscles.flatMap((muscle) => muscleTable[muscle])
-    .sort(() => Math.random() - 0.5);
-    const restExercises = Object.values(muscleTable)
-    .flat()
-    .filter((exercise) => !preMyExercises.includes(exercise))
-    .sort(() => Math.random() - 0.5);
-    setMyExercises([...preMyExercises, ...restExercises.slice(0, 10 - preMyExercises.length)]
-    .slice(0, 10));
+    const generateExerciseList = () => {
+      const prioritized = myMuscles.flatMap((muscle) => muscleTable[muscle] || []);
+      const remaining = Object.values(muscleTable)
+        .flat()
+        .filter((exercise) => !prioritized.includes(exercise));
+      return [...prioritized, ...remaining].slice(0, 10).sort(() => Math.random() - 0.5);
+    };
+    setExerciseList(generateExerciseList());
   }, [myMuscles]);
 
-  // TensorFlow 초기화
+  // TensorFlow 모델 초기화
   useEffect(() => {
-    tf.ready().then(() => {
-      poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
+    const loadModel = async () => {
+      await tf.setBackend('webgl');
+      await tf.ready();
+      detectorRef.current = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
         runtime: 'tfjs',
         modelType: 'lite',
-      }).then(setDetector);
-    });
+      });
+    };
+    loadModel();
   }, []);
 
-  // webcam 초기화
+  // 웹캠 초기화
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
       if (webcamRef.current) webcamRef.current.srcObject = stream;
     });
   }, []);
 
-  // landmarks 그리기
-  const drawLandmarks = (canvas, landmarks, color = 'red') => {
-    if (!canvas || !landmarks) return;
-    const context = canvas.getContext('2d');
+  // 운동 평가
+  const evaluateExercise = (landmarks) => {
+    const currentExercise = exerciseList[exerciseIndex];
+    const exerciseData = exerciseTables[currentExercise] || exerciseTables.default;
+    const { joint1, joint2, joint3 } = exerciseData.keypoints;
 
-    canvas.width = webcamRef.current.videoWidth;
-    canvas.height = webcamRef.current.videoHeight;
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    landmarks.forEach(({ x, y }) => {
-      context.beginPath();
-      context.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
-      context.fillStyle = color;
-      context.fill();
-    });
-  };
-  
-  const evaluateExercise = (landmarks, exercise) => {
-  //landmarks->angle->count, score, feedback 
-    const exerciseTable = exerciseTables[exercise]|| exerciseTables.default;
-    const { joint1, joint2, joint3 } = exerciseTable.keypoints;
-    const p1 = landmarks[joint1] || { x: 0, y: 0 }; 
+    const p1 = landmarks[joint1] || { x: 0, y: 0 };
     const p2 = landmarks[joint2] || { x: 0, y: 0 };
     const p3 = landmarks[joint3] || { x: 0, y: 0 };
     const radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
     const angle = Math.abs((radians * 180) / Math.PI);
     const finalAngle = angle > 180 ? 360 - angle : angle;
 
-// 현재 상태 판단
-const currentState = finalAngle <= 90 ? "DOWN" : finalAngle >= 170 ? "UP" : null;
-
-// 상태 전환 확인
-const previousState = previousStateRef.current;
-
-if (currentState && currentState !== previousState) {
-  if (currentState === "DOWN" && previousState === "UP") {
-    // "UP → DOWN" 완료 → 세트 증가
-    transitionCountRef.current += 1; // 전환 카운트 증가
-    if (transitionCountRef.current === 2) { // "DOWN → UP → DOWN" 완료
-      setCount((prev) => prev + 1); // 카운트 증가
-      setScore((prev) => prev + 10); // 점수 증가
-      transitionCountRef.current = 0; // 전환 카운트 초기화
-    }
-  }
-  // 이전 상태 업데이트
-  previousStateRef.current = currentState;
-}
-};
-
-  // 웹캠 처리 
-    const processWebcam = async () => {
-      if (detector && webcamRef.current?.readyState === 4 && myExercises[exercise]) {
-        const poses = await detector.estimatePoses(webcamRef.current);
-        if (poses.length > 0) {
-          const landmarks = poses[0].keypoints.map((kp) => ({
-            x: kp.x / webcamRef.current.videoWidth,
-            y: kp.y / webcamRef.current.videoHeight,
-          }));
-          drawLandmarks(webcamCanvasRef.current, landmarks);
-          evaluateExercise(landmarks, myExercises[exercise]);
+    const currentState = finalAngle <= 90 ? "DOWN" : finalAngle >= 170 ? "UP" : null;
+    if (currentState && currentState !== previousStateRef.current) {
+      if (currentState === "DOWN" && previousStateRef.current === "UP") {
+        transitionCountRef.current += 1;
+        if (transitionCountRef.current === 2) {
+          setCount((prev) => prev + 1);
+          setScore((prev) => prev + 10);
+          transitionCountRef.current = 0;
         }
-      };
-  }
+      }
+      previousStateRef.current = currentState;
+    }
+  };
+
+  // 랜드마크 및 뼈대 그리기
+  const drawLandmarksAndSkeleton = (canvas, landmarks, color = 'red') => {
+    if (!canvas || !landmarks) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = webcamRef.current.videoWidth;
+    canvas.height = webcamRef.current.videoHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    landmarks.forEach(({ x, y }) => {
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+
+    edges.forEach(([start, end]) => {
+      const p1 = landmarks[start];
+      const p2 = landmarks[end];
+      if (p1 && p2) {
+        ctx.beginPath();
+        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    });
+  };
+
+  // 랜드마크 추적
+  const processWebcam = async () => {
+    const detector = detectorRef.current;
+    if (
+      !detector ||
+      !webcamRef.current ||
+      webcamRef.current.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA
+    ) {
+      return;
+    }
+
+    const poses = await detector.estimatePoses(webcamRef.current);
+    if (poses.length > 0) {
+      const landmarks = poses[0].keypoints.map((kp) => ({
+        x: kp.x / webcamRef.current.videoWidth,
+        y: kp.y / webcamRef.current.videoHeight,
+      }));
+      drawLandmarksAndSkeleton(canvasRef.current, landmarks);
+      evaluateExercise(landmarks);
+    }
+  };
 
   useEffect(() => {
-    const interval = setInterval(processWebcam, 100);
+    const interval = setInterval(processWebcam, 200);
     return () => clearInterval(interval);
-  }, [detector, myExercises, exercise]);
+  }, [exerciseList, exerciseIndex]);
 
-  // 현재 운동 이름으로 비디오 경로 생성
-  const guideVideoPath = `/assets/${myExercises[exercise]}.mp4`;
-
-  // 다음 운동으로 이동
   const nextExercise = () => {
-    if (exercise < myExercises.length - 1) {
-      setExercise((prev) => prev + 1);
-      setCount(0); 
+    if (exerciseIndex < exerciseList.length - 1) {
+      setExerciseIndex((prev) => prev + 1);
+      setCount(0);
     } else {
       navigate('/feedback');
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px' }}>
-      <h1>운동 자세 분석</h1>
-      <h3>점수: {score}</h3>
-      <h3>횟수: {count}</h3>
-      <button onClick={nextExercise}>다음 운동</button>
-      <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-        <video src={guideVideoPath} autoPlay loop muted width="300" height="300" style={{ border: '2px solid black', borderRadius: '8px' }}></video>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* 상단 영역 */}
+      <div style={{
+        height: '33%',
+        backgroundColor: '#f0f0f0',
+        textAlign: 'center',
+        padding: '20px',
+        zIndex: 1,
+        position: 'relative',
+      }}>
+        <h1>운동 자세 분석</h1>
+        <h3>운동 이름: {exerciseList[exerciseIndex] || '알 수 없음'}</h3>
+        <h3>점수: {score}</h3>
+        <h3>횟수: {count}</h3>
+        <button onClick={nextExercise}>다음 운동</button>
       </div>
-      <div style={{ position: 'relative' }}>
-        <video ref={webcamRef} autoPlay playsInline muted width="640" height="480" style={{ border: '1px solid black' }}></video>
-        <canvas ref={webcamCanvasRef} width="640" height="480" style={{ position: 'absolute', top: 0, left: 0 }}></canvas>
+
+      {/* 하단 영역 */}
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+        {/* 가이드 비디오 */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px' }}>
+          <video
+            src={`/assets/${exerciseList[exerciseIndex]}.mp4`}
+            autoPlay
+            loop
+            muted
+            style={{ width: '100%', height: 'auto', borderRadius: '10px', border: '2px solid black' }}
+          />
+        </div>
+
+        {/* 웹캠과 캔버스 */}
+        <div style={{ flex: 1, position: 'relative', padding: '10px' }}>
+          <video
+            ref={webcamRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: '100%',
+              height: 'auto',
+              borderRadius: '10px',
+              border: '2px solid black',
+            }}
+          />
+          <canvas
+            ref={canvasRef}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+            }}
+          />
+        </div>
       </div>
     </div>
   );
