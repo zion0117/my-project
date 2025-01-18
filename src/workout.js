@@ -28,19 +28,7 @@ function Workout() {
     [12, 14], [14, 16], [5, 7], [7, 9], [6, 8], [8, 10],
   ];
 
-  // 초기 설정: 운동 목록 생성
-  useEffect(() => {
-    const generateExerciseList = () => {
-      const prioritized = myMuscles.flatMap((muscle) => muscleTable[muscle] || []);
-      const remaining = Object.values(muscleTable)
-        .flat()
-        .filter((exercise) => !prioritized.includes(exercise));
-      return [...prioritized, ...remaining].slice(0, 10).sort(() => Math.random() - 0.5);
-    };
-    setExerciseList(generateExerciseList());
-  }, [myMuscles]);
-
-  // TensorFlow 모델 초기화
+  // TensorFlow 모델 로드드
   useEffect(() => {
     const loadModel = async () => {
       await tf.setBackend('webgl');
@@ -60,90 +48,72 @@ function Workout() {
     });
   }, []);
 
+  // 운동 목록 생성
+  useEffect(() => {
+    const generateExerciseList = () => {
+      const MyExerciseList = myMuscles.flatMap((muscle) => muscleTable[muscle] || []);
+      return MyExerciseList.slice(0, 10).sort(() => Math.random() - 0.5);
+    };
+    setExerciseList(generateExerciseList());
+  }, [myMuscles]);
+
   // 운동 평가
   const evaluateExercise = (landmarks) => {
     const currentExercise = exerciseList[exerciseIndex];
     const exerciseData = exerciseTables[currentExercise] || exerciseTables.default;
     const { joint1, joint2, joint3 } = exerciseData.keypoints;
 
-    const p1 = landmarks[joint1] || { x: 0, y: 0 };
-    const p2 = landmarks[joint2] || { x: 0, y: 0 };
-    const p3 = landmarks[joint3] || { x: 0, y: 0 };
+    const getLandmark = (index) => landmarks[index] || { x: 0, y: 0 };
+    const p1 = getLandmark(joint1);
+    const p2 = getLandmark(joint2);
+    const p3 = getLandmark(joint3);
+    
     const radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
     const angle = Math.abs((radians * 180) / Math.PI);
     const finalAngle = angle > 180 ? 360 - angle : angle;
 
-    const currentState = finalAngle <= 90 ? "DOWN" : finalAngle >= 170 ? "UP" : null;
-    if (currentState && currentState !== previousStateRef.current) {
-      if (currentState === "DOWN" && previousStateRef.current === "UP") {
+    const currentState = finalAngle <= 90 ? "DOWN" : finalAngle >= 170 ? "UP" : "NONE";
+
+    if (currentState !== previousStateRef.current) {
+      if (
+        (currentState === "DOWN" && previousStateRef.current === "UP") ||
+        (currentState === "UP" && previousStateRef.current === "DOWN")
+      ) {
         transitionCountRef.current += 1;
-        if (transitionCountRef.current === 2) {
-          setCount((prev) => prev + 1);
-          setScore((prev) => prev + 10);
-          transitionCountRef.current = 0;
-        }
       }
+
+      if (transitionCountRef.current === 2) {
+        setCount((prev) => prev + 1);
+        setScore((prev) => prev + 10);
+        transitionCountRef.current = 0;
+      }
+
       previousStateRef.current = currentState;
     }
   };
 
-  // 랜드마크 및 뼈대 그리기
-  const drawLandmarksAndSkeleton = (canvas, landmarks, color = 'red') => {
-    if (!canvas || !landmarks) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = webcamRef.current.videoWidth;
-    canvas.height = webcamRef.current.videoHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    landmarks.forEach(({ x, y }) => {
-      ctx.beginPath();
-      ctx.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-    });
-
-    edges.forEach(([start, end]) => {
-      const p1 = landmarks[start];
-      const p2 = landmarks[end];
-      if (p1 && p2) {
-        ctx.beginPath();
-        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-        ctx.strokeStyle = 'blue';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    });
-  };
-
-  // 랜드마크 추적
+  // 웹캠 처리
   const processWebcam = async () => {
+    if (!detectorRef.current || !webcamRef.current || webcamRef.current.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA) return;
     const detector = detectorRef.current;
-    if (
-      !detector ||
-      !webcamRef.current ||
-      webcamRef.current.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA
-    ) {
-      return;
-    }
-
     const poses = await detector.estimatePoses(webcamRef.current);
-    if (poses.length > 0) {
-      const landmarks = poses[0].keypoints.map((kp) => ({
-        x: kp.x / webcamRef.current.videoWidth,
-        y: kp.y / webcamRef.current.videoHeight,
-      }));
-      drawLandmarksAndSkeleton(canvasRef.current, landmarks);
-      evaluateExercise(landmarks);
-    }
-  };
 
+    if (!poses.length) return;
+    const landmarks = poses[0].keypoints.map((kp) => ({
+      x: kp.x / webcamRef.current.videoWidth,
+      y: kp.y / webcamRef.current.videoHeight,
+    }));
+
+    evaluateExercise(landmarks);
+  };
+  
+  // 타이머로 웹캠 주기적 처리
   useEffect(() => {
     const interval = setInterval(processWebcam, 200);
     return () => clearInterval(interval);
   }, [exerciseList, exerciseIndex]);
 
+  // 다음 운동
   const nextExercise = () => {
     if (exerciseIndex < exerciseList.length - 1) {
       setExerciseIndex((prev) => prev + 1);
@@ -165,7 +135,7 @@ function Workout() {
         position: 'relative',
       }}>
         <h1>운동 자세 분석</h1>
-        <h3>운동 이름: {exerciseList[exerciseIndex] || '알 수 없음'}</h3>
+        <h3>운동 이름: {exerciseList[exerciseIndex] ?? '알 수 없음'}</h3>
         <h3>점수: {score}</h3>
         <h3>횟수: {count}</h3>
         <button onClick={nextExercise}>다음 운동</button>
@@ -215,3 +185,33 @@ function Workout() {
 }
 
 export default Workout;
+
+  // 랜드마크 및 뼈대 그리기
+  /* const drawLandmarksAndSkeleton = (canvas, landmarks, color = 'red') => {
+    if (!canvas || !landmarks) return;
+    const ctx = canvas.getContext('2d');
+
+    landmarks.forEach(({ x, y }) => {
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+
+    edges.forEach(([start, end]) => {
+      const p1 = landmarks[start];
+      const p2 = landmarks[end];
+      if (p1 && p2) {
+        ctx.beginPath();
+        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    });
+    ctx.clearRect();
+  };
+  */
+
+ //피드백, 다른 운동 추가하기
