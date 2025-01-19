@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
@@ -55,7 +55,7 @@ function Workout() {
       return MyExerciseList.slice(0, 10).sort(() => Math.random() - 0.5);
     };
     setExerciseList(generateExerciseList());
-  }, [myMuscles]);
+  }, []);
 
   // 운동 평가
   const evaluateExercise = (landmarks) => {
@@ -105,13 +105,49 @@ function Workout() {
     }));
 
     evaluateExercise(landmarks);
+    drawLandmarksAndSkeleton(canvasRef.current, landmarks);
+  };
+
+  //랜드마크
+  const drawLandmarksAndSkeleton = (canvas, landmarks, color = 'red') => {
+    if (!canvas || !Array.isArray(landmarks) || landmarks.length === 0) {
+      console.error("Invalid canvas or landmarks data");
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);  // 캔버스 클리어
+  
+    landmarks.forEach(({ x, y }) => {
+      ctx.beginPath();
+      ctx.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+  
+    edges.forEach(([start, end]) => {
+      const p1 = landmarks[start];
+      const p2 = landmarks[end];
+      if (p1 && p2) {
+        ctx.beginPath();
+        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    });
   };
   
   // 타이머로 웹캠 주기적 처리
+  const memoizedProcessWebcam = useCallback(() => {
+    processWebcam();
+  }, [exerciseIndex]); 
+  
   useEffect(() => {
-    const interval = setInterval(processWebcam, 200);
+    const interval = setInterval(memoizedProcessWebcam, 200);
     return () => clearInterval(interval);
-  }, [exerciseList, exerciseIndex]);
+  }, [memoizedProcessWebcam]);
 
   // 다음 운동
   const nextExercise = () => {
@@ -185,33 +221,3 @@ function Workout() {
 }
 
 export default Workout;
-
-  // 랜드마크 및 뼈대 그리기
-  /* const drawLandmarksAndSkeleton = (canvas, landmarks, color = 'red') => {
-    if (!canvas || !landmarks) return;
-    const ctx = canvas.getContext('2d');
-
-    landmarks.forEach(({ x, y }) => {
-      ctx.beginPath();
-      ctx.arc(x * canvas.width, y * canvas.height, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-    });
-
-    edges.forEach(([start, end]) => {
-      const p1 = landmarks[start];
-      const p2 = landmarks[end];
-      if (p1 && p2) {
-        ctx.beginPath();
-        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-        ctx.strokeStyle = 'blue';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    });
-    ctx.clearRect();
-  };
-  */
-
- //피드백, 다른 운동 추가하기
