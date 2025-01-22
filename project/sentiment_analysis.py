@@ -1,4 +1,8 @@
+import os
 from transformers import pipeline
+
+# Hugging Face 캐시 경로 설정
+os.environ["HF_HOME"] = "C:/huggingface_cache"
 
 # 감정 분석 모델 로드
 def load_sentiment_model():
