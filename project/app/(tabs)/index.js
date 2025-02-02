@@ -92,42 +92,47 @@ const IndexScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f2f5', // 밝은 파란색 계열 배경
   },
   scrollContainer: {
-    padding: 20,
+    padding: 16, // 간격 조정
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24, // 간격 조정
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#2e3d49',
+    color: '#1877f2', // 페이스북 파란색
   },
   section: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: 12,
+    color: '#1c1e21', // 어두운 회색
   },
   sectionContent: {
     fontSize: 16,
-    color: '#666',
+    color: '#606770', // 중간 회색
+    lineHeight: 24, // 줄 간격 조정
   },
   button: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#1877f2', // 페이스북 파란색
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 6,
     alignItems: 'center',
     marginTop: 10,
   },
