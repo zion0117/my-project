@@ -22,7 +22,7 @@ const App = () => {
 
   // 구글 맵 API를 통해 주변 공원 5개를 가져오는 함수
   const fetchNearbyParks = async (latitude: number, longitude: number) => {
-    const apiKey = 'AIzaSyCw1L3S9pfSFGzzPJ5P75EUwfJ7Xjvm_ko';
+    const apiKey = '구글맵 api  key';
     const radius = 5000; // 5km 반경
     const type = 'park'; // 공원 타입
 
