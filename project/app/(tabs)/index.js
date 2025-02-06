@@ -84,6 +84,14 @@ const IndexScreen = () => {
           </TouchableOpacity>
         </View>
 
+          {/* 생활 운동 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>생활 운동</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/find-park')}>
+            <Text style={styles.buttonText}>주변 공원 추천</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
