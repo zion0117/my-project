@@ -1,47 +1,56 @@
-import os
+# sentiment_analysis.py
+
 from transformers import pipeline
 
-# Hugging Face 캐시 경로 설정
-os.environ["HF_HOME"] = "C:/huggingface_cache"
+# 1. Hugging Face의 감정 분석 파이프라인 초기화
+#    다국어 지원 모델을 사용하여 한국어 입력에도 대응합니다.
+sentiment_pipeline = pipeline(
+    "sentiment-analysis",
+    model="nlptown/bert-base-multilingual-uncased-sentiment"
+)
 
-# 감정 분석 모델 로드
-def load_sentiment_model():
-    return pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
+def get_health_tip(user_input: str) -> str:
+    """
+    사용자가 입력한 기분 문장을 분석하여 적절한 건강 팁을 반환합니다.
 
-# 감정 분석 함수
-def analyze_sentiment(model, user_input):
-    result = model(user_input)[0]
-    sentiment = result['label']
-    return sentiment
+    Args:
+        user_input (str): 사용자가 입력한 기분 혹은 감정 관련 문장.
+    
+    Returns:
+        str: 감정 분석 결과에 따른 추천 건강 팁.
+    """
+    # 2. 입력 문장에 대해 감정 분석 수행
+    results = sentiment_pipeline(user_input)
+    # results 예시: [{'label': '1 star', 'score': 0.75}]
+    sentiment_label = results[0]['label']  # 예: "1 star", "2 stars", ...
+    
+    # 3. 별점(숫자)를 추출하여 정수로 변환
+    try:
+        star_rating = int(sentiment_label[0])
+    except (ValueError, IndexError):
+        # 예상치 못한 포맷의 경우 중립적인 건강 팁 반환
+        return "균형 잡힌 기분입니다. 꾸준한 운동과 건강한 식습관을 유지해보세요."
+    
+    # 4. 별점에 따라 건강 팁 추천 결정
+    if star_rating <= 2:
+        # 1~2성: 부정적인 감정 (예: 스트레스)
+        return "스트레스가 높습니다. 5분 호흡 운동을 시도해보세요."
+    elif star_rating == 3:
+        # 3성: 중립적 감정
+        return "균형 잡힌 기분입니다. 꾸준한 운동과 건강한 식습관을 유지해보세요."
+    else:
+        # 4~5성: 긍정적인 감정
+        return "좋은 기분입니다! 이 상태를 유지하기 위해 잠시 휴식을 취하거나 산책을 해보세요."
 
-# 감정에 따른 건강 팁 추천
-def get_health_tip(sentiment):
-    tips = {
-        '1 star': "스트레스가 높습니다. 5분 호흡 운동을 시도해보세요.",
-        '2 stars': "기분이 조금 처져 있군요. 가벼운 산책을 추천합니다.",
-        '3 stars': "보통 기분이시네요. 충분한 수면을 취하세요.",
-        '4 stars': "좋은 기분입니다! 운동을 꾸준히 유지하세요.",
-        '5 stars': "행복한 하루군요! 긍정적인 에너지를 나눠보세요."
-    }
-    return tips.get(sentiment, "건강한 생활 습관을 유지하세요.")
-
-# 사용자 인터페이스
-def main():
-    print("감정 기반 건강 팁 추천 시스템")
-    model = load_sentiment_model()
-
-    while True:
-        user_input = input("현재 기분을 입력하세요 (종료하려면 'exit' 입력): ")
-        if user_input.lower() == 'exit':
-            print("프로그램을 종료합니다.")
-            break
-
-        sentiment = analyze_sentiment(model, user_input)
-        health_tip = get_health_tip(sentiment)
-        
-        print(f"분석된 감정: {sentiment}")
-        print(f"추천 건강 팁: {health_tip}")
-        print("-" * 50)
-
+# 5. 모듈 단독 실행 시 테스트 실행
 if __name__ == "__main__":
-    main()
+    # 예시 입력들
+    test_inputs = [
+        "스트레스가 너무 많아요.",
+        "오늘 기분이 정말 좋아요!",
+        "평범한 하루를 보내고 있어요."
+    ]
+    
+    for text in test_inputs:
+        tip = get_health_tip(text)
+        print(f"입력: {text}\n추천 건강 팁: {tip}\n")
