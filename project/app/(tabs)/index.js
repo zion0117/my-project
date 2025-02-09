@@ -1,12 +1,71 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router'; // ✅ 네비게이션 기능 추가
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, Text, View, TouchableOpacity, StyleSheet, Modal, TextInput, Button } from 'react-native';
+import { useRouter } from 'expo-router';
 
 const IndexScreen = () => {
-  const router = useRouter(); // ✅ useRouter 사용
+  const router = useRouter();
+
+  // 로그인/회원가입 팝업 상태 관리
+  const [isModalVisible, setIsModalVisible] = useState(true); // 기본적으로 팝업을 보이게 설정
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // 로그인 처리 로직
+    setIsModalVisible(false); // 로그인 후 팝업 닫기
+  };
+
+  const handleSignUp = () => {
+    // 회원가입 처리 로직
+    setIsModalVisible(false); // 회원가입 후 팝업 닫기
+  };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 로그인/회원가입 팝업 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>로그인 / 회원가입</Text>
+
+            {/* 이메일 입력 */}
+            <TextInput
+              style={styles.input}
+              placeholder="이메일"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            {/* 비밀번호 입력 */}
+            <TextInput
+              style={styles.input}
+              placeholder="비밀번호"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            {/* 버튼들 */}
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>로그인</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+              <Text style={styles.buttonText}>회원가입</Text>
+            </TouchableOpacity>
+
+            {/* 팝업 닫기 버튼 */}
+            <TouchableOpacity onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.closeButton}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* 제목 */}
         <View style={styles.header}>
@@ -92,19 +151,19 @@ const IndexScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f2f5', // 밝은 파란색 계열 배경
+    backgroundColor: '#f0f2f5',
   },
   scrollContainer: {
-    padding: 16, // 간격 조정
+    padding: 16,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24, // 간격 조정
+    marginBottom: 24,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1877f2', // 페이스북 파란색
+    color: '#1877f2',
   },
   section: {
     backgroundColor: '#ffffff',
@@ -121,15 +180,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#1c1e21', // 어두운 회색
+    color: '#1c1e21',
   },
   sectionContent: {
     fontSize: 16,
-    color: '#606770', // 중간 회색
-    lineHeight: 24, // 줄 간격 조정
+    color: '#606770',
+    lineHeight: 24,
   },
   button: {
-    backgroundColor: '#1877f2', // 페이스북 파란색
+    backgroundColor: '#1877f2',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 6,
@@ -140,6 +199,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // 투명 배경
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    width: '80%',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderRadius: 6,
+    borderColor: '#ddd',
+  },
+  closeButton: {
+    color: '#1877f2',
+    fontSize: 16,
+    marginTop: 20,
+    textDecorationLine: 'underline',
   },
 });
 
