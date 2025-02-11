@@ -35,4 +35,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# 가상환경 폴더
+venv/
+
 app-example
