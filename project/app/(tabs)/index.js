@@ -80,6 +80,15 @@ const IndexScreen = () => {
 
         {/* 커뮤니티 게시판 */}
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>우리동네 운동정보</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/community')}>
+            <Text style={styles.buttonText}>정보게시판</Text>
+          </TouchableOpacity>
+        </View>
+
+
+        {/* 커뮤니티 게시판 */}
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>커뮤니티 게시판</Text>
           <TouchableOpacity style={styles.button} onPress={() => router.push('/community')}>
             <Text style={styles.buttonText}>게시판 보기</Text>
