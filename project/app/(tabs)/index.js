@@ -2,17 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView, ScrollView, Text, View, TouchableOpacity, StyleSheet, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth } from './firebaseConfig';
+import { getAuth } from "firebase/auth"; 
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import GoogleSignInButton from './GoogleSignInButton'; // Google 로그인 버튼 가져오기
 
-
-console.log(auth); // ✅ auth 객체가 제대로 생성되었는지 확인 // Firebase 설정 파일 가져오기
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 
 const IndexScreen = () => {
   const router = useRouter();
+  const auth = getAuth();
   const [isModalVisible, setIsModalVisible] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
   // 로그인 상태 감지
@@ -24,28 +22,6 @@ const IndexScreen = () => {
     return unsubscribe;
   }, []);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setIsModalVisible(false);
-    } catch (error) {
-      alert('로그인 실패: ' + error.message);
-    }
-    setLoading(false);
-  };
-
-  const handleSignUp = async () => {
-    setLoading(true);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      setIsModalVisible(false);
-    } catch (error) {
-      alert('회원가입 실패: ' + error.message);
-    }
-    setLoading(false);
-  };
-
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
@@ -55,34 +31,16 @@ const IndexScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* 로그인 모달 */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setIsModalVisible(false)}
-      >
+      <Modal animationType="slide" transparent={true} visible={isModalVisible}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>로그인 / 회원가입</Text>
-            <TextInput style={styles.input} placeholder="이메일" value={email} onChangeText={setEmail} />
-            <TextInput style={styles.input} placeholder="비밀번호" secureTextEntry value={password} onChangeText={setPassword} />
-
-            {loading ? (
-              <ActivityIndicator size="large" color="#1877f2" />
-            ) : (
-              <>
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                  <Text style={styles.buttonText}>로그인</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-                  <Text style={styles.buttonText}>회원가입</Text>
-                </TouchableOpacity>
-              </>
-            )}
+            <Text style={styles.modalTitle}>Google 로그인</Text>
+            <GoogleSignInButton />
           </View>
         </View>
       </Modal>
 
+//상세탭
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>시니어 헬스 커뮤니티</Text>
