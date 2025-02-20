@@ -163,6 +163,14 @@ const IndexScreen = () => {
           </TouchableOpacity>
         </View>
 
+          {/* 정보 게시판 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>정보 게시판</Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/healthinfo')}>
+            <Text style={styles.buttonText}>건강 관련 정보</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
