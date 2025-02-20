@@ -38,6 +38,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "435a8b1f-c851-40d4-a87e-f23720276d3d"
+      }
+    },
+    "owner": "suyeon11"
   }
 }
