@@ -17,7 +17,6 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
-
 # Metro
 .metro-health-check*
 
@@ -39,8 +38,9 @@ yarn-error.*
 # 가상환경 폴더
 venv/
 
-app-example
-
 /android
 /ios
+
+app-example
+
 
