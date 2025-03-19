@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, ScrollView, Text, View, TouchableOpacity, StyleSheet, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { auth } from './firebaseConfig';
-import { getAuth } from "firebase/auth"; 
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import GoogleSignInButton from './GoogleSignInButton'; // Google 로그인 버튼 가져오기
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import GoogleSignInButton from './GoogleSignInButton'; // Google 로그인 버튼 컴포넌트
 
-
-const IndexScreen = () => {
+const HomeScreen = () => {
   const router = useRouter();
   const auth = getAuth();
   const [isModalVisible, setIsModalVisible] = useState(true);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false); // 로딩 상태 추가
 
   // 로그인 상태 감지
   useEffect(() => {
@@ -23,9 +21,15 @@ const IndexScreen = () => {
   }, []);
 
   const handleLogout = async () => {
+    setLoading(true); // 로딩 시작
     await signOut(auth);
     setUser(null);
     setIsModalVisible(true);
+    setLoading(false); // 로딩 종료
+  };
+
+  const handleSkipLogin = () => {
+    setIsModalVisible(false); // 모달을 닫음
   };
 
   return (
@@ -36,21 +40,36 @@ const IndexScreen = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Google 로그인</Text>
             <GoogleSignInButton />
+            {/* 로그인하지 않기 버튼 */}
+            <TouchableOpacity style={styles.skipButton} onPress={handleSkipLogin}>
+              <Text style={styles.skipButtonText}>로그인하지 않기</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-//상세탭
+      {/* 상세 탭 */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>시니어 헬스 커뮤니티</Text>
-          {user && <TouchableOpacity onPress={handleLogout}><Text style={styles.logoutButton}>로그아웃</Text></TouchableOpacity>}
+          {user && (
+            <TouchableOpacity onPress={handleLogout}>
+              {loading ? (
+                <ActivityIndicator size="small" color="red" />
+              ) : (
+                <Text style={styles.logoutButton}>로그아웃</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* 건강 정보 섹션 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>오늘의 건강 팁</Text>
-          <Text style={styles.sectionContent}>하루 30분 걷기를 실천해보세요! 심혈관 건강에 좋습니다.</Text>
+          <Text style={styles.sectionContent}>
+            하루 30분 걷기를 실천해보세요! 심혈관 건강에 좋습니다.
+          </Text>
         </View>
 
         {/* 커뮤니티 게시판 */}
@@ -79,7 +98,9 @@ const styles = StyleSheet.create({
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   modalContent: { backgroundColor: 'white', padding: 20, width: '80%', borderRadius: 10, alignItems: 'center' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
+  skipButton: { marginTop: 10, padding: 10 },
+  skipButtonText: { color: '#606770', fontSize: 16, textDecorationLine: 'underline' },
   input: { width: '100%', padding: 10, marginVertical: 10, borderWidth: 1, borderRadius: 6, borderColor: '#ddd' },
 });
 
-export default IndexScreen;
+export default HomeScreen;
