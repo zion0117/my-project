@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "hi",
+    "slug": "hi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.suyeon11.myapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.exercise.android1",
+      "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "e82c2d2b-44eb-4a0e-81b5-1eff52d2db5a"
+      },
+      "firebase": {
+        "apiKey": "AIzaSyA-2Xy3TjexJhZgpIRtsqYF8ix0en9UXb0",
+        "authDomain": "exercisedb-442105.firebaseapp.com",
+        "projectId": "exercisedb-442105",
+        "storageBucket": "exercisedb-442105.firebasestorage.app",
+        "messagingSenderId": "193222581186",
+        "appId": "1:193222581186:web:1df215487a3c4b0579545b",
+        "measurementId": "G-GHNG55W70H"
+      },
+      "googleAuth": {
+        "iosClientId": "193222581186-bu6ov3f33b0oksar8hn4oddnfv2kqmh8.apps.googleusercontent.com",
+        "androidClientId": "193222581186-oemf1raknn4jbj1ag3jqqfmovumme2ji.apps.googleusercontent.com",
+        "webClientId": "193222581186-n71h707adtk4rvjfikqkc0jt1h4mgcva.apps.googleusercontent.com",
+        "redirectUri": "https://auth.expo.io/suyeon11/hi"
+      },
+      "newsApiKey": "033a8a4311e54da19efadc83aa2004d8"  
+    },
+    "owner": "suyeon11"
+  }
+}
