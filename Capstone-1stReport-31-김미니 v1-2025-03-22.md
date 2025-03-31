@@ -244,24 +244,54 @@
 
 ---
 
-## (3) 주요엔진 및 기능 설계
+## (3) 주요 엔진 및 기능 설계
 
-- AR 운동 자세 가이드:
-  - TensorFlow.js 기반 Pose Detection 모델로 실시간 관절 포인트 추출
-  - React Native 카메라 오버레이 UI로 정확도 피드백 제공
-  - 운동 자세별 기준과 사용자의 포즈를 비교하여 실시간 피드백 제공
+본 프로젝트는 AR 기반 운동 자세 교정 및 소셜 네트워킹 기능을 포함한 헬스케어 플랫폼으로, 시니어 사용자의 운동 경험을 개선하는 것을 목표로 한다. 주요 엔진과 기능을 효과적으로 구현하기 위해 React Native, TensorFlow.js, Firebase, Google API, Dialogflow 등의 기술을 활용하며, 시스템의 모듈을 다음과 같이 구성한다.
 
-- 소셜 네트워킹:
-  - Firebase Firestore를 활용한 그룹 구성, 팀 챌린지 설정 및 상태 관리
-  - Expo-notifications를 활용한 알림 기능 구현
+### SW 아키텍처 및 모듈 구성
 
-- 운동 기록 및 분석:
-  - Firestore에 운동 기록 저장
-  - Streamlit을 통해 사용자의 운동 기록을 시각화하여 트렌드 제공
+프로젝트의 전체적인 아키텍처는 프론트엔드(React Native), 백엔드(Firebase, Node.js 기반 API 서버), 그리고 머신러닝 모듈(TensorFlow.js, Scikit-learn) 로 구성된다. 
+
+각 모듈의 주요 역할은 다음과 같다.
+
+1. UI/UX 모듈 (React Native 기반)
+   - 사용자 인터페이스(UI) 설계 및 화면 구성
+   - 운동 기록, AR 가이드, 건강 정보 등을 표시하는 대시보드
+   - 시니어 친화적인 UI (큰 글씨, 쉬운 네비게이션)
+   - 음성 인식 입력 기능 지원 (Google Speech-to-Text API)
+
+2. AR 운동 자세 교정 모듈
+   - TensorFlow.js 기반 실시간 포즈 감지
+   - 운동 자세 분석 및 피드백 제공
+   - expo-camera를 활용하여 사용자의 카메라 피드를 받아들임
+   - 자세 오류를 감지하고 교정 방법을 안내하는 시각적 오버레이
+   - 운동 결과를 저장하고 피드백을 데이터화하여 사용자가 발전 과정 확인 가능
+
+3. 소셜 네트워킹 및 커뮤니티 모듈
+   - Firebase 기반의 그룹 운동 도전 과제 및 팀 챌린지 기능 제공
+   - 사용자들이 친구를 추가하고, 팀을 구성하여 운동 목표를 공유
+   - React Native Navigation을 이용한 커뮤니티 UI 제공
+   - Firebase Firestore를 활용한 게시글 및 댓글 저장, 좋아요 기능 지원
+
+4. 운동 데이터 저장 및 시각화 모듈
+   - Firebase Firestore를 활용하여 운동 기록을 저장
+   - Streamlit 및 Plotly Dash를 활용한 운동 데이터 시각화
+   - 사용자별 운동 기록 분석 및 AI 추천 기능 제공
+   
+5. 챗봇 기반 건강 가이드 모듈
+   - Dialogflow 및 Rasa 기반의 헬스케어 챗봇
+   - 사용자의 질문을 받아 운동 가이드 및 건강 정보 제공
+   - 텍스트 및 이미지 응답 기능 지원
+
+6. 알림 및 리마인더 모듈
+   - Firebase Cloud Messaging을 이용한 운동 및 약 복용 알림
+   - 사용자의 설정에 따라 운동 일정 및 목표 리마인더 발송
+   - React Native Push Notification을 활용한 푸시 알림 기능 제공
 
 ---
 
 ## (4) 주요 기능의 구현
+
 ### 1. AR 운동 자세 가이드
 - `expo-camera`로 사용자 카메라 피드 수신
 - `@tensorflow-models/pose-detection`을 사용하여 실시간 관절 위치(keypoints) 추출
