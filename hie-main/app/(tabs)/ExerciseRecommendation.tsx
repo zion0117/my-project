@@ -54,7 +54,7 @@ export default function ExerciseRecommendation() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🦾 취약한 신체 부위를 선택하세요</Text>
+      <Text style={styles.title}>🦾 단련할 신체 부위를 선택하세요</Text>
 
       {Object.keys(exercises).map((bodyPart) => (
         <TouchableOpacity
