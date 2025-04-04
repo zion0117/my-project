@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { collection, addDoc, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { collection, addDoc, onSnapshot, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { db } from './firebaseConfig'; // ✅ 너의 Firebase 설정 파일 경로 맞게 수정
+import { Ionicons } from '@expo/vector-icons';
+import { db } from './firebaseConfig'; // ✅ Firebase 설정
 
 const Social = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [newPost, setNewPost] = useState('');
   const auth = getAuth();
 
-  // ✅ Firestore 실시간 글 불러오기
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
       const fetched = snapshot.docs.map((doc) => ({
@@ -22,18 +32,16 @@ const Social = () => {
     return () => unsubscribe();
   }, []);
 
-  // ✅ 글쓰기 기능
   const handlePost = async () => {
     if (!newPost.trim()) return;
     const user = auth.currentUser;
-    if (!user) return Alert.alert('로그인 필요');
+    if (!user) return Alert.alert('로그인이 필요합니다.');
 
     try {
       await addDoc(collection(db, 'posts'), {
         title: newPost,
-        content: '',
-        author: user.uid,
-        timestamp: new Date(),
+        author: user.email || '익명',
+        timestamp: Timestamp.now(),
         likes: 0,
       });
       setNewPost('');
@@ -43,7 +51,6 @@ const Social = () => {
     }
   };
 
-  // ✅ 좋아요 기능
   const handleLike = async (id: string, currentLikes: number) => {
     try {
       const postRef = doc(db, 'posts', id);
@@ -54,66 +61,118 @@ const Social = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>🗨️ 커뮤니티</Text>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Text style={styles.header}>💬 커뮤니티</Text>
 
-      {/* 글 작성 입력창 */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="글을 작성하세요"
+          placeholder="무엇이든 공유해보세요!"
           value={newPost}
           onChangeText={setNewPost}
         />
-        <TouchableOpacity onPress={handlePost} style={styles.postButton}>
-          <Text style={styles.postButtonText}>작성</Text>
+        <TouchableOpacity style={styles.postButton} onPress={handlePost}>
+          <Ionicons name="send" size={20} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* 글 리스트 */}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <View style={styles.post}>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="person-circle-outline" size={24} color="#1877f2" />
+              <Text style={styles.authorText}>{item.author}</Text>
+            </View>
             <Text style={styles.postText}>{item.title}</Text>
-            <TouchableOpacity onPress={() => handleLike(item.id, item.likes)}>
-              <Text style={styles.like}>❤️ {item.likes}</Text>
+            <TouchableOpacity onPress={() => handleLike(item.id, item.likes)} style={styles.likeButton}>
+              <Ionicons name="heart-outline" size={18} color="#e0245e" />
+              <Text style={styles.likeText}>{item.likes}</Text>
             </TouchableOpacity>
           </View>
         )}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  header: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
-  inputContainer: { flexDirection: 'row', marginBottom: 10 },
+  container: { flex: 1, backgroundColor: '#F8F9FB', padding: 16 },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    shadowColor: '#ccc',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 6,
+    paddingVertical: 10,
+    fontSize: 16,
   },
   postButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    justifyContent: 'center',
+    backgroundColor: '#1877f2',
+    padding: 10,
+    borderRadius: 30,
     marginLeft: 8,
-    borderRadius: 6,
   },
-  postButtonText: { color: '#fff', fontWeight: 'bold' },
-  post: {
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 8,
+  card: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#ccc',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  postText: { fontSize: 16 },
-  like: { marginTop: 8, color: '#e0245e' },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  authorText: {
+    marginLeft: 8,
+    fontWeight: '600',
+    color: '#444',
+  },
+  postText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 8,
+  },
+  likeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#fce8ed',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  likeText: {
+    marginLeft: 4,
+    fontSize: 14,
+    color: '#e0245e',
+    fontWeight: '500',
+  },
 });
 
 export default Social;

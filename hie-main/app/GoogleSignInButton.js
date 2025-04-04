@@ -43,7 +43,7 @@ const GoogleSignInButton = () => {
             email: user.email,
             name: user.displayName,
           });
-          router.replace('/HomeScreen');
+          router.replace('/');
         })
         .catch((error) => {
           console.error("❌ Firebase 로그인 실패:", error);
