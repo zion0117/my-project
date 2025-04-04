@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import ChatbotPopup from "./ChatbotPopup"; // 챗봇 팝업 import
-
+import { CustomText as Text } from "../components/CustomText";
 export default function ChatbotScreen() {
   const [isChatbotVisible, setIsChatbotVisible] = useState(false); // 팝업 상태 관리
 

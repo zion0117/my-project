@@ -1,9 +1,10 @@
 import Constants from "expo-constants";
 import React, { useState } from "react";
-import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert } from "react-native";
+import { View, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert } from "react-native";
 import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
+import { CustomText as Text } from "../components/CustomText";
 
 // ✅ Firebase 연결
 const db = getFirestore();

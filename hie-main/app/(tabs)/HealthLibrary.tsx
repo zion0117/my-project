@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Image, ActivityIndicator, StyleSheet, Alert } from "react-native";
+import { View,  FlatList, Image, ActivityIndicator, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 import Constants from "expo-constants";
+import { CustomText as Text } from "../../components/CustomText";
 
 const NEWS_API_KEY = Constants.expoConfig?.extra?.newsApiKey || "";
 

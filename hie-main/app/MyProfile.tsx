@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
+import { View, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "expo-router";
+import { CustomText as Text } from "../components/CustomText";
 
 const MyProfile = () => {
   const router = useRouter();

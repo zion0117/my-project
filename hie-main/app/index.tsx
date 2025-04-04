@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
-  Text,
   View,
   TouchableOpacity,
   StyleSheet,
   Modal,
   ActivityIndicator,
 } from "react-native";
+import { CustomText as Text } from "../components/CustomText";
 import { useRouter } from "expo-router";
 import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,6 +56,7 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 로그인 모달 */}
       <Modal animationType="slide" transparent={true} visible={isModalVisible}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -102,7 +103,6 @@ const HomeScreen: React.FC = () => {
         ))}
       </ScrollView>
 
-      {/* 챗봇 */}
       <Text style={styles.chatbotLabel}>궁금한 점이 있나요?</Text>
       <TouchableOpacity style={styles.chatbotButton} onPress={() => setIsChatbotVisible(true)}>
         <Ionicons name="chatbubble-ellipses-outline" size={28} color="#005A9E" />
@@ -113,13 +113,23 @@ const HomeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F8F9FB" },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    paddingTop: 50, // ✅ 타이틀 위 여백 추가
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     alignItems: "center",
   },
-  title: { fontSize: 24, fontWeight: "bold", color: "#222" },
+
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#222",
+    fontFamily: "GmarketSansMedium",
+  },
+
   headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
   logoutText: { fontSize: 14, color: "gray", marginLeft: 10 },
 
@@ -136,7 +146,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
   },
-  cardText: { fontSize: 18, fontWeight: "600" },
+  cardText: {
+    fontSize: 18,
+    fontWeight: "600",
+    fontFamily: "GmarketSansMedium",
+  },
 
   chatbotLabel: {
     position: "absolute",
@@ -147,6 +161,7 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 8,
     color: "#555",
+    fontFamily: "GmarketSansMedium",
   },
   chatbotButton: {
     position: "absolute",
@@ -177,8 +192,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 16 },
-  skipButtonText: { color: "#888", marginTop: 10 },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    fontFamily: "GmarketSansMedium",
+  },
+  skipButtonText: {
+    color: "#888",
+    marginTop: 10,
+    fontFamily: "GmarketSansMedium",
+  },
 });
 
 export default HomeScreen;

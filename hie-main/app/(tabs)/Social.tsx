@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { CustomText as Text } from "../../components/CustomText";
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -13,12 +13,14 @@ import {
 import { collection, addDoc, onSnapshot, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
-import { db } from './firebaseConfig'; // ✅ Firebase 설정
+import { db } from './firebaseConfig';
+import { useRouter } from 'expo-router'; // ✅ 추가
 
 const Social = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [newPost, setNewPost] = useState('');
   const auth = getAuth();
+  const router = useRouter(); // ✅ 홈 이동용 라우터
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
@@ -62,6 +64,12 @@ const Social = () => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* ✅ 홈으로 돌아가기 버튼 */}
+      <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/home')}>
+        <Ionicons name="arrow-back" size={20} color="#007AFF" />
+        <Text style={styles.homeButtonText}>홈으로</Text>
+      </TouchableOpacity>
+
       <Text style={styles.header}>💬 커뮤니티</Text>
 
       <View style={styles.inputContainer}>
@@ -100,6 +108,18 @@ const Social = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FB', padding: 16 },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  homeButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    marginLeft: 6,
+    fontWeight: '500',
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -153,7 +173,7 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   postText: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#333',
     marginVertical: 8,
   },

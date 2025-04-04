@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import { View,  StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
 import * as Location from "expo-location";
+import { CustomText as Text } from "../../components/CustomText";
 import axios from "axios";
 import MapView, { Marker } from "react-native-maps";
 import Constants from "expo-constants";
