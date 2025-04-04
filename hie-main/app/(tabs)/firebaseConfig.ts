@@ -19,4 +19,5 @@ const analytics = getAnalytics(app);
 const db = getFirestore(app); // ✅ Firestore 인스턴스 생성
 
 // 필요하면 app도 export 가능
-export { db };
+export { db,app };
+

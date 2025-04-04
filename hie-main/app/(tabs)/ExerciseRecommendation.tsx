@@ -1,106 +1,167 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
-import { db, auth } from "./firebaseConfig";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from "react-native";
+import { getAuth } from "firebase/auth";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "./firebaseConfig"; // 🔁 너의 firebaseConfig 경로에 맞게 수정
+import { Ionicons } from "@expo/vector-icons";
 
-// ✅ 취약 신체 부위별 운동 추천 목록 (타입 명확히 지정)
 const exercises: Record<string, string[]> = {
   허리: ["플랭크", "브릿지", "백 익스텐션"],
   무릎: ["스쿼트", "런지", "레그 익스텐션"],
   어깨: ["숄더 프레스", "레터럴 레이즈", "리버스 플라이"],
-};
-
-// ✅ AI 운동 추천 함수 (랜덤 선택)
-const recommendExercise = (bodyPart: keyof typeof exercises): string => {
-  const exerciseList = exercises[bodyPart];
-  const randomIndex = Math.floor(Math.random() * exerciseList.length);
-  return exerciseList[randomIndex] || "운동 추천 불가";
+  팔: ["컬", "트라이셉스 익스텐션", "푸쉬업"],
+  등: ["랫풀다운", "시티드로우", "풀업"],
+  복부: ["크런치", "러시안 트위스트", "마운틴 클라이머"],
+  엉덩이: ["힙 브릿지", "킥백", "스텝업"],
+  종아리: ["카프레이즈", "점프 스쿼트", "스텝 점프"],
 };
 
 export default function ExerciseRecommendation() {
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string | null>(null);
-  const [recommendedExercise, setRecommendedExercise] = useState<string | null>(null);
+  const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const auth = getAuth();
 
-  // ✅ 운동 추천 및 Firebase 저장
-  const handleRecommendation = async (bodyPart: keyof typeof exercises) => {
+  const toggleBodyPart = (part: string) => {
+    if (selectedParts.includes(part)) {
+      setSelectedParts(selectedParts.filter((p) => p !== part));
+    } else {
+      if (selectedParts.length >= 8) {
+        Alert.alert("선택 제한", "최대 8개까지 선택할 수 있습니다.");
+        return;
+      }
+      setSelectedParts([...selectedParts, part]);
+    }
+  };
+
+  const getRecommendations = () => {
+    const result: Record<string, string> = {};
+    selectedParts.forEach((part) => {
+      const list = exercises[part];
+      const random = list[Math.floor(Math.random() * list.length)];
+      result[part] = random;
+    });
+    return result;
+  };
+
+  const handleSubmit = async () => {
+    if (selectedParts.length === 0) {
+      Alert.alert("선택 필요", "운동 부위를 최소 1개 이상 선택하세요.");
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("오류", "로그인이 필요합니다.");
+      return;
+    }
+
+    const recommendations = getRecommendations();
+
     setLoading(true);
-    setSelectedBodyPart(bodyPart);
-
-    const exercise = recommendExercise(bodyPart); // 항상 string 반환 보장
-    setRecommendedExercise(exercise); // ✅ 문자열만 저장하도록 수정
-
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error("로그인이 필요합니다.");
-
       await addDoc(collection(db, "exercise_recommendations"), {
         userId: user.uid,
-        bodyPart,
-        recommendedExercise: exercise,
+        bodyParts: selectedParts,
+        recommendedExercises: recommendations,
         timestamp: Timestamp.now(),
       });
-
-      Alert.alert("운동 추천 완료", `${bodyPart}에 좋은 운동: ${exercise}`);
-    } catch (error) {
-      console.error("운동 데이터 저장 실패:", error);
-      Alert.alert("운동 데이터 저장 실패",);
+      Alert.alert("운동 추천 완료", "추천 결과가 저장되었습니다.");
+    } catch (err) {
+      console.error("저장 오류:", err);
+      Alert.alert("저장 실패", "데이터를 저장하는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
+  const recommendations = getRecommendations();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🦾 단련할 신체 부위를 선택하세요</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>💪 운동하고 싶은 부위를 선택하세요 (최대 8개)</Text>
 
-      {Object.keys(exercises).map((bodyPart) => (
-        <TouchableOpacity
-          key={bodyPart}
-          style={styles.button}
-          onPress={() => handleRecommendation(bodyPart as keyof typeof exercises)}
-        >
-          <Text style={styles.buttonText}>{bodyPart}</Text>
-        </TouchableOpacity>
-      ))}
+      <View style={styles.grid}>
+        {Object.keys(exercises).map((part) => (
+          <TouchableOpacity
+            key={part}
+            onPress={() => toggleBodyPart(part)}
+            style={[styles.partButton, selectedParts.includes(part) && styles.selectedButton]}
+          >
+            <Text style={[styles.partText, selectedParts.includes(part) && styles.selectedText]}>
+              {part}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-      {loading && <ActivityIndicator size="large" color="#007AFF" />}
-      {recommendedExercise && (
-        <Text style={styles.resultText}>추천 운동: {recommendedExercise} 🏋️</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 30 }} />
+      ) : (
+        <>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitText}>🏋️‍♀️ 운동 추천 받기</Text>
+          </TouchableOpacity>
+
+          {selectedParts.length > 0 && (
+            <View style={styles.recommendationBox}>
+              <Text style={styles.recommendTitle}>추천 운동</Text>
+              {Object.entries(recommendations).map(([part, exercise]) => (
+                <Text key={part} style={styles.exerciseText}>
+                  ▶ {part}: {exercise}
+                </Text>
+              ))}
+            </View>
+          )}
+        </>
       )}
-
-      {/* ✅ "자세 교정하러 가기" 버튼 추가 */}
-      {recommendedExercise && (
-        <TouchableOpacity style={styles.arButton} onPress={() => router.push("/ARGuide")}>
-          <Text style={styles.buttonText}>📷 자세 교정하러 가기</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    </ScrollView>
   );
 }
 
-// ✅ 스타일 정의
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  button: {
+  container: { padding: 20, backgroundColor: "#fff", alignItems: "center" },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  partButton: {
+    backgroundColor: "#eee",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    margin: 6,
+    borderRadius: 8,
+  },
+  selectedButton: {
     backgroundColor: "#007AFF",
-    padding: 15,
-    marginVertical: 5,
-    borderRadius: 8,
-    width: "80%",
-    alignItems: "center",
   },
-  arButton: {
+  partText: {
+    color: "#333",
+    fontWeight: "600",
+  },
+  selectedText: {
+    color: "#fff",
+  },
+  submitButton: {
+    marginTop: 30,
     backgroundColor: "#FF5722",
-    padding: 15,
-    marginTop: 20,
-    borderRadius: 8,
-    width: "80%",
-    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 10,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  resultText: { fontSize: 18, fontWeight: "bold", color: "#333", marginTop: 20 },
+  submitText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  recommendationBox: {
+    marginTop: 30,
+    width: "100%",
+    backgroundColor: "#f2f2f2",
+    padding: 20,
+    borderRadius: 12,
+  },
+  recommendTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  exerciseText: { fontSize: 16, marginBottom: 4 },
 });
