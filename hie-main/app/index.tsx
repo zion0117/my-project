@@ -66,14 +66,27 @@ const HomeScreen: React.FC = () => {
 
       {/* 상세 탭 */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>시니어 헬스 커뮤니티</Text>
-          {user && (
-            <TouchableOpacity onPress={handleLogout}>
-              {loading ? <ActivityIndicator size="small" color="red" /> : <Text style={styles.logoutButton}>로그아웃</Text>}
-            </TouchableOpacity>
+      <View style={styles.header}>
+  <Text style={styles.title}>시니어 헬스 커뮤니티</Text>
+  <View style={styles.headerRight}>
+    {user && (
+      <>
+        <TouchableOpacity onPress={() => router.push("/MyProfile")}>
+          <Ionicons name="person-circle-outline" size={28} color="#1877f2" style={styles.profileIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogout}>
+          {loading ? (
+            <ActivityIndicator size="small" color="red" />
+          ) : (
+            <Text style={styles.logoutButton}>로그아웃</Text>
           )}
-        </View>
+        </TouchableOpacity>
+      </>
+    )}
+  </View>
+</View>
+
+        
 
         {pages.map((item, index) => (
           <View style={styles.section} key={index}>
@@ -142,6 +155,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 5,
   },
+  headerRight: {
+    position: 'absolute',
+    right: 16,
+    top: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  profileIcon: {
+    marginRight: 10,
+  },
+  
 });
 
 export default HomeScreen;
