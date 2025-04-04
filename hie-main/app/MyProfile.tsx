@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { getAuth } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { useRouter } from "expo-router";
 
 const MyProfile = () => {
+  const router = useRouter();
   const user = getAuth().currentUser;
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
@@ -37,10 +39,10 @@ const MyProfile = () => {
         age,
         location,
       }, { merge: true });
-      Alert.alert("성공", "정보가 저장되었습니다!");
+      Alert.alert("✅ 저장 완료", "정보가 저장되었습니다!");
     } catch (error) {
       console.error("저장 오류:", error);
-      Alert.alert("오류", "정보 저장에 실패했습니다.");
+      Alert.alert("❌ 저장 실패", "정보 저장에 실패했습니다.");
     }
     setLoading(false);
   };
@@ -71,6 +73,11 @@ const MyProfile = () => {
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
         <Text style={styles.saveButtonText}>{loading ? "저장 중..." : "정보 저장"}</Text>
+      </TouchableOpacity>
+
+      {/* ✅ 홈으로 돌아가기 버튼 */}
+      <TouchableOpacity style={styles.homeButton} onPress={() => router.replace("/")}>
+        <Text style={styles.homeButtonText}>🏠 홈으로</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -113,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   saveButton: {
-    marginTop: 30,
+    marginTop: 20,
     backgroundColor: "#1C7ED6",
     paddingVertical: 14,
     borderRadius: 8,
@@ -121,6 +128,18 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  homeButton: {
+    marginTop: 20,
+    backgroundColor: "#B2F2BB",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  homeButtonText: {
+    color: "#2B8A3E",
     fontSize: 16,
     fontWeight: "bold",
   },
