@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import { getAuth } from "firebase/auth";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // 🔁 너의 firebase 설정 경로로 맞춰줘
+import { db } from "./firebaseConfig";
 import { CustomText } from "../../components/CustomText";
 
 const ARGuide = () => {
   const [recommendedExercises, setRecommendedExercises] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
+
   const user = getAuth().currentUser;
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchData = async () => {
       if (!user) return;
 
       try {
+        // ✅ 사용자 토큰 가져오기
+        const idToken = await user.getIdToken();
+        setToken(idToken);
+
+        // ✅ 추천 운동 불러오기
         const q = query(
           collection(db, "exercise_recommendations"),
           where("userId", "==", user.uid),
@@ -28,13 +35,13 @@ const ARGuide = () => {
           setRecommendedExercises(data.recommendedExercises || {});
         }
       } catch (err) {
-        console.error("추천 운동 불러오기 실패:", err);
+        console.error("데이터 불러오기 실패:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRecommendations();
+    fetchData();
   }, []);
 
   const getExerciseList = () => {
@@ -45,13 +52,10 @@ const ARGuide = () => {
   };
 
   const getARGuideURL = () => {
-    // 실제로는 이 URL을 동적으로 구성하거나, 부위별로 구분 가능
-    return "posecorrector.netlify.app"; // ✅ MediaPipe가 포함된 AR HTML 페이지
+    return `https://posecorrector.netlify.app?token=${token}`;
   };
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 50 }} />;
-  }
+  if (loading || !token) return <ActivityIndicator size="large" style={{ marginTop: 40 }} color="#007AFF" />;
 
   return (
     <View style={styles.container}>
