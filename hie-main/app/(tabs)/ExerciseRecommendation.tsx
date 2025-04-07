@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 const exercises: Record<string, string[]> = {
-  허리: ["플랭크", "브릿지", "백 익스텐션"],
+  허리: ["플랭크"],
   무릎: ["스쿼트", "런지", "레그 익스텐션"],
   어깨: ["숄더 프레스", "레터럴 레이즈", "리버스 플라이"],
   팔: ["컬", "트라이셉스 익스텐션", "푸쉬업"],

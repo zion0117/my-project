@@ -46,7 +46,7 @@ const ARGuide = () => {
 
   const getARGuideURL = () => {
     // 실제로는 이 URL을 동적으로 구성하거나, 부위별로 구분 가능
-    return "https://posecorrector.netlify.app"; // ✅ MediaPipe가 포함된 AR HTML 페이지
+    return "posecorrector.netlify.app"; // ✅ MediaPipe가 포함된 AR HTML 페이지
   };
 
   if (loading) {
