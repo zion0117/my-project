@@ -3,114 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>운동 자세 교정 홈</title>
+  <title>운동 자세 교정</title>
   <style>
     body {
       font-family: 'Gmarket Sans', sans-serif;
-      background: #f4f7fa;
+      background: #f0f3f7;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       text-align: center;
     }
     h1 {
-      margin-top: 40px;
       color: #333;
+      margin-bottom: 30px;
     }
     .exercise-list {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      margin: 40px auto;
-      max-width: 800px;
-      gap: 16px;
+      gap: 14px;
     }
     .exercise-button {
       background-color: #007AFF;
       color: white;
-      padding: 14px 24px;
-      border-radius: 10px;
+      padding: 12px 20px;
+      border-radius: 8px;
       text-decoration: none;
       font-size: 16px;
       font-weight: bold;
-      transition: background-color 0.2s;
+      display: inline-block;
+      transition: background 0.2s;
     }
     .exercise-button:hover {
-      background-color: #0057c2;
-    }
-
-    /* ✅ 추천된 운동 강조 스타일 */
-    .recommended {
-      background-color: #00C851 !important;
-      border: 2px solid #006B3C;
+      background-color: #005bb5;
     }
   </style>
 </head>
 <body>
-  <h1>🏋️ 자세 교정용 운동 선택</h1>
-  <div class="exercise-list">
-    <a id="plankBtn" href="/plank.html" class="exercise-button">플랭크</a>
-    <a id="squatBtn" href="/squat.html" class="exercise-button">스쿼트</a>
-    <a id="crunchBtn" href="/crunch.html" class="exercise-button">크런치</a>
-    <a id="bridgeBtn" href="/bridge.html" class="exercise-button">브릿지</a>
-    <a id="lungeBtn" href="/lunge.html" class="exercise-button">런지</a>
-    <a id="hipkickBtn" href="/hipkick.html" class="exercise-button">킥백</a>
+  <h1>추천된 운동 자세 보기</h1>
+  <div class="exercise-list" id="exerciseContainer">
+    <p>불러오는 중...</p>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  <!-- ✅ Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
+  <script>
+    // ✅ Firebase config (네 프로젝트 걸로 수정해줘)
     const firebaseConfig = {
-        apiKey: "AIzaSyBE8ctT7TL_5IdfOG32F9w3aazAYXajDaM",
-        authDomain: "exercisedb-442105.firebaseapp.com",
-        projectId: "exercisedb-442105",
-        storageBucket: "exercisedb-442105.firebasestorage.app",
-        messagingSenderId: "193222581186",
-        appId: "1:193222581186:web:1df215487a3c4b0579545b",
-        measurementId: "G-GHNG55W70H"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+    const container = document.getElementById('exerciseContainer');
 
-      const q = query(
-        collection(db, "exercise_recommendations"),
-        where("userId", "==", user.uid),
-        orderBy("timestamp", "desc"),
-        limit(1)
-      );
+    // ✅ 로그인된 사용자 기준 최근 추천 운동 불러오기
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        container.innerHTML = "<p>로그인이 필요합니다.</p>";
+        return;
+      }
 
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
+      try {
+        const snapshot = await db
+          .collection('exercise_recommendations')
+          .where('userId', '==', user.uid)
+          .orderBy('timestamp', 'desc')
+          .limit(1)
+          .get();
+
+        if (snapshot.empty) {
+          container.innerHTML = "<p>추천된 운동이 없습니다.</p>";
+          return;
+        }
+
         const data = snapshot.docs[0].data();
-        const recommended = Object.values(data.recommendedExercises || {});
-        highlightRecommended(recommended);
+        const exercises = data.recommendedExercises || {};
+        container.innerHTML = "";
+
+        Object.entries(exercises).forEach(([part, name]) => {
+          const link = document.createElement("a");
+          link.href = `/${name.toLowerCase()}.html`; // 예: 플랭크 → plank.html
+          link.className = "exercise-button";
+          link.innerText = name;
+          container.appendChild(link);
+        });
+      } catch (err) {
+        console.error("불러오기 실패:", err);
+        container.innerHTML = "<p>오류가 발생했습니다.</p>";
       }
     });
-
-    function highlightRecommended(recommendedList) {
-      const map = {
-        "플랭크": "plankBtn",
-        "스쿼트": "squatBtn",
-        "크런치": "crunchBtn",
-        "브릿지": "bridgeBtn",
-        "런지": "lungeBtn",
-        "킥백": "hipkickBtn"
-      };
-
-      recommendedList.forEach((exercise) => {
-        const id = map[exercise];
-        if (id) {
-          const el = document.getElementById(id);
-          if (el) el.classList.add("recommended");
-        }
-      });
-    }
   </script>
 </body>
 </html>
