@@ -3,8 +3,9 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicato
 import { getAuth } from "firebase/auth";
 import { CustomText as Text } from "../../components/CustomText";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // 🔁 너의 firebaseConfig 경로에 맞게 수정
+import { db } from "./firebaseConfig"; // 🔁 경로 확인
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const exercises: Record<string, string[]> = {
   허리: ["플랭크", "브릿지", "백 익스텐션"],
@@ -21,6 +22,7 @@ export default function ExerciseRecommendation() {
   const [selectedParts, setSelectedParts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const auth = getAuth();
+  const router = useRouter();
 
   const toggleBodyPart = (part: string) => {
     if (selectedParts.includes(part)) {
@@ -66,7 +68,14 @@ export default function ExerciseRecommendation() {
         recommendedExercises: recommendations,
         timestamp: Timestamp.now(),
       });
+
       Alert.alert("운동 추천 완료", "추천 결과가 저장되었습니다.");
+
+      // ✅ 추천 운동 정보를 포함해 ARGuide로 이동
+      router.push({
+        pathname: "/ARGuide",
+        params: { recommended: JSON.stringify(recommendations) },
+      });
     } catch (err) {
       console.error("저장 오류:", err);
       Alert.alert("저장 실패", "데이터를 저장하는 중 오류가 발생했습니다.");
