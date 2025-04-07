@@ -37,17 +37,80 @@
     .exercise-button:hover {
       background-color: #0057c2;
     }
+
+    /* ✅ 추천된 운동 강조 스타일 */
+    .recommended {
+      background-color: #00C851 !important;
+      border: 2px solid #006B3C;
+    }
   </style>
 </head>
 <body>
   <h1>🏋️ 자세 교정용 운동 선택</h1>
   <div class="exercise-list">
-    <a href="/plank.html" class="exercise-button">플랭크</a>
-    <a href="/squat.html" class="exercise-button">스쿼트</a>
-    <a href="/crunch.html" class="exercise-button">크런치</a>
-    <a href="/bridge.html" class="exercise-button">브릿지</a>
-    <a href="/lunge.html" class="exercise-button">런지</a>
-    <a href="/hipkick.html" class="exercise-button">킥백</a>
+    <a id="plankBtn" href="/plank.html" class="exercise-button">플랭크</a>
+    <a id="squatBtn" href="/squat.html" class="exercise-button">스쿼트</a>
+    <a id="crunchBtn" href="/crunch.html" class="exercise-button">크런치</a>
+    <a id="bridgeBtn" href="/bridge.html" class="exercise-button">브릿지</a>
+    <a id="lungeBtn" href="/lunge.html" class="exercise-button">런지</a>
+    <a id="hipkickBtn" href="/hipkick.html" class="exercise-button">킥백</a>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBE8ctT7TL_5IdfOG32F9w3aazAYXajDaM",
+        authDomain: "exercisedb-442105.firebaseapp.com",
+        projectId: "exercisedb-442105",
+        storageBucket: "exercisedb-442105.firebasestorage.app",
+        messagingSenderId: "193222581186",
+        appId: "1:193222581186:web:1df215487a3c4b0579545b",
+        measurementId: "G-GHNG55W70H"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const q = query(
+        collection(db, "exercise_recommendations"),
+        where("userId", "==", user.uid),
+        orderBy("timestamp", "desc"),
+        limit(1)
+      );
+
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        const recommended = Object.values(data.recommendedExercises || {});
+        highlightRecommended(recommended);
+      }
+    });
+
+    function highlightRecommended(recommendedList) {
+      const map = {
+        "플랭크": "plankBtn",
+        "스쿼트": "squatBtn",
+        "크런치": "crunchBtn",
+        "브릿지": "bridgeBtn",
+        "런지": "lungeBtn",
+        "킥백": "hipkickBtn"
+      };
+
+      recommendedList.forEach((exercise) => {
+        const id = map[exercise];
+        if (id) {
+          const el = document.getElementById(id);
+          if (el) el.classList.add("recommended");
+        }
+      });
+    }
+  </script>
 </body>
 </html>
