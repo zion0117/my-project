@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { getAuth } from "firebase/auth";
+import { CustomText as Text } from "../../components/CustomText";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig"; // 🔁 너의 firebaseConfig 경로에 맞게 수정
 import { Ionicons } from "@expo/vector-icons";
