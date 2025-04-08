@@ -50,28 +50,45 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ✅ Firebase config (네 프로젝트 걸로 수정해줘)
+    // ✅ Firebase config
     const firebaseConfig = {
-  apiKey: "AIzaSyBE8ctT7TL_5IdfOG32F9w3aazAYXajDaM",
-  authDomain: "exercisedb-442105.firebaseapp.com",
-  projectId: "exercisedb-442105",
-  storageBucket: "exercisedb-442105.firebasestorage.app",
-  messagingSenderId: "193222581186",
-  appId: "1:193222581186:web:1df215487a3c4b0579545b",
-  measurementId: "G-GHNG55W70H"
-};
-
+      apiKey: "AIzaSyBE8ctT7TL_5IdfOG32F9w3aazAYXajDaM",
+      authDomain: "exercisedb-442105.firebaseapp.com",
+      projectId: "exercisedb-442105",
+      storageBucket: "exercisedb-442105.firebasestorage.app",
+      messagingSenderId: "193222581186",
+      appId: "1:193222581186:web:1df215487a3c4b0579545b",
+      measurementId: "G-GHNG55W70H"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-
     const container = document.getElementById('exerciseContainer');
 
-    // ✅ 로그인된 사용자 기준 최근 추천 운동 불러오기
-    auth.onAuthStateChanged(async user => {
+    // ✅ URL에서 토큰 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (!token) {
+      container.innerHTML = "<p>토큰이 없어 인증할 수 없습니다.</p>";
+    } else {
+      // ✅ ID 토큰으로 Firebase 사용자 인증
+      auth.signInWithCustomToken(token)
+        .then(() => {
+          console.log("✅ Firebase 인증 성공 (Web)");
+          loadExerciseData(); // 인증 성공 시 데이터 불러오기
+        })
+        .catch(err => {
+          console.error("❌ Firebase 인증 실패:", err);
+          container.innerHTML = "<p>인증에 실패했습니다. 다시 시도해 주세요.</p>";
+        });
+    }
+
+    async function loadExerciseData() {
+      const user = auth.currentUser;
       if (!user) {
-        container.innerHTML = "<p>로그인이 필요합니다.</p>";
+        container.innerHTML = "<p>인증된 사용자가 없습니다.</p>";
         return;
       }
 
@@ -94,16 +111,16 @@
 
         Object.entries(exercises).forEach(([part, name]) => {
           const link = document.createElement("a");
-          link.href = `/${name.toLowerCase()}.html`; // 예: 플랭크 → plank.html
+          link.href = `/${name.toLowerCase()}.html`;
           link.className = "exercise-button";
           link.innerText = name;
           container.appendChild(link);
         });
       } catch (err) {
         console.error("불러오기 실패:", err);
-        container.innerHTML = "<p>오류가 발생했습니다.</p>";
+        container.innerHTML = "<p>운동 데이터를 불러오는 데 실패했습니다.</p>";
       }
-    });
+    }
   </script>
 </body>
 </html>

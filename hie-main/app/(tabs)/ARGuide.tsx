@@ -10,6 +10,7 @@ const ARGuide = () => {
   const [recommendedExercises, setRecommendedExercises] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
+  const [webUrl, setWebUrl] = useState<string>("");
 
   const user = getAuth().currentUser;
 
@@ -18,11 +19,9 @@ const ARGuide = () => {
       if (!user) return;
 
       try {
-        // ✅ 사용자 토큰 가져오기
         const idToken = await user.getIdToken();
         setToken(idToken);
 
-        // ✅ 추천 운동 불러오기
         const q = query(
           collection(db, "exercise_recommendations"),
           where("userId", "==", user.uid),
@@ -30,10 +29,18 @@ const ARGuide = () => {
           limit(1)
         );
         const querySnapshot = await getDocs(q);
+
+        let exercises: Record<string, string> = {};
         if (!querySnapshot.empty) {
           const data = querySnapshot.docs[0].data();
-          setRecommendedExercises(data.recommendedExercises || {});
+          exercises = data.recommendedExercises || {};
+          setRecommendedExercises(exercises);
         }
+
+        // ✅ 운동 정보와 토큰을 함께 쿼리스트링으로 전달
+        const exerciseQuery = encodeURIComponent(JSON.stringify(exercises));
+        const url = `https://posecorrector.netlify.app/index.html?token=${idToken}&exercises=${exerciseQuery}`;
+        setWebUrl(url);
       } catch (err) {
         console.error("데이터 불러오기 실패:", err);
       } finally {
@@ -51,11 +58,9 @@ const ARGuide = () => {
       .join("\n");
   };
 
-  const getARGuideURL = () => {
-    return `https://posecorrector.netlify.app?token=${token}`;
-  };
-
-  if (loading || !token) return <ActivityIndicator size="large" style={{ marginTop: 40 }} color="#007AFF" />;
+  if (loading || !token || !webUrl) {
+    return <ActivityIndicator size="large" style={{ marginTop: 40 }} color="#007AFF" />;
+  }
 
   return (
     <View style={styles.container}>
@@ -63,7 +68,7 @@ const ARGuide = () => {
       <CustomText style={styles.subtitle}>{getExerciseList()}</CustomText>
 
       <WebView
-        source={{ uri: getARGuideURL() }}
+        source={{ uri: webUrl }}
         style={styles.webview}
         javaScriptEnabled
         domStorageEnabled
