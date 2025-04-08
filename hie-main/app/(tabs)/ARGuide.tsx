@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
 import { WebView } from "react-native-webview";
 import { getAuth } from "firebase/auth";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs, addDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import { CustomText } from "../../components/CustomText";
 
 const ARGuide = () => {
   const [recommendedExercises, setRecommendedExercises] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null);
   const [webUrl, setWebUrl] = useState<string>("");
 
   const user = getAuth().currentUser;
@@ -19,9 +18,7 @@ const ARGuide = () => {
       if (!user) return;
 
       try {
-        const idToken = await user.getIdToken();
-        setToken(idToken);
-
+        // ✅ Firestore에서 운동 추천 데이터 가져오기
         const q = query(
           collection(db, "exercise_recommendations"),
           where("userId", "==", user.uid),
@@ -37,9 +34,9 @@ const ARGuide = () => {
           setRecommendedExercises(exercises);
         }
 
-        // ✅ 운동 정보와 토큰을 함께 쿼리스트링으로 전달
+        // ✅ HTML에 넘겨줄 URL 생성 (token 제거됨)
         const exerciseQuery = encodeURIComponent(JSON.stringify(exercises));
-        const url = `https://posecorrector.netlify.app/index.html?token=${idToken}&exercises=${exerciseQuery}`;
+        const url = `https://posecorrector.netlify.app/index.html?exercises=${exerciseQuery}`;
         setWebUrl(url);
       } catch (err) {
         console.error("데이터 불러오기 실패:", err);
@@ -51,6 +48,26 @@ const ARGuide = () => {
     fetchData();
   }, []);
 
+  // ✅ WebView로부터 운동 결과 메시지 받기 → Firebase 저장
+  const handleWebMessage = async (event: any) => {
+    try {
+      const result = JSON.parse(event.nativeEvent.data);
+      if (!user) throw new Error("인증된 사용자가 없습니다.");
+
+      await addDoc(collection(db, "exercise_results"), {
+        userId: user.uid,
+        ...result,
+        savedAt: new Date(),
+      });
+
+      Alert.alert("✅ 결과 저장 완료", "운동 결과가 저장되었습니다.");
+      console.log("🔥 저장된 결과:", result);
+    } catch (err) {
+      console.error("❌ 저장 실패:", err);
+      Alert.alert("❌ 저장 실패", "운동 결과 저장에 실패했습니다.");
+    }
+  };
+
   const getExerciseList = () => {
     if (!recommendedExercises) return "추천된 운동이 없습니다.";
     return Object.entries(recommendedExercises)
@@ -58,7 +75,7 @@ const ARGuide = () => {
       .join("\n");
   };
 
-  if (loading || !token || !webUrl) {
+  if (loading || !webUrl) {
     return <ActivityIndicator size="large" style={{ marginTop: 40 }} color="#007AFF" />;
   }
 
@@ -72,6 +89,7 @@ const ARGuide = () => {
         style={styles.webview}
         javaScriptEnabled
         domStorageEnabled
+        onMessage={handleWebMessage} // ✅ WebView 메시지 수신
       />
     </View>
   );

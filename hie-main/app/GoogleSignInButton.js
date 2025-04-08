@@ -12,42 +12,38 @@ const GoogleSignInButton = () => {
   const router = useRouter();
   const auth = getAuth();
 
+  // ✅ 클라이언트 ID 설정 (Android/iOS)
   const androidClientId = Constants.expoConfig?.extra?.googleAuth?.androidClientId;
   const iosClientId = Constants.expoConfig?.extra?.googleAuth?.iosClientId;
+
   const clientId = Platform.OS === 'android' ? androidClientId : iosClientId;
 
+  // ✅ Google 로그인 요청 초기화 (redirectUri 생략!)
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId,
     scopes: ['openid', 'profile', 'email'],
   });
 
+  // ✅ 디버깅용 로그
   useEffect(() => {
     console.log("📲 사용 중인 clientId:", clientId);
   }, []);
 
+  // ✅ 로그인 성공 처리
   useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.params;
       const credential = GoogleAuthProvider.credential(id_token);
 
       signInWithCredential(auth, credential)
-        .then(async (userCredential) => {
+        .then((userCredential) => {
           const user = userCredential.user;
           console.log("✅ Firebase 로그인 성공:", {
             uid: user.uid,
             email: user.email,
             name: user.displayName,
           });
-
-          // ✅ Firebase ID 토큰 가져오기
-          const idToken = await user.getIdToken();
-
-          // ✅ WebView에서 사용할 페이지 주소로 이동 (token 포함)
-          const webUrl = `https://your-site.web.app/index.html?token=${idToken}`;
-          router.push({
-            pathname: '/ar-guide', // WebView 보여주는 페이지 (ARGuide.tsx 등)
-            params: { url: webUrl },
-          });
+          router.replace('/');
         })
         .catch((error) => {
           console.error("❌ Firebase 로그인 실패:", error);
