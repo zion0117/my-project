@@ -6,14 +6,46 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <style>
-    body { margin: 0; font-family: 'Gmarket Sans', sans-serif; background: #000; color: white; text-align: center; }
-    #canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-    #feedback { position: absolute; top: 20px; left: 0; width: 100%; font-size: 24px; font-weight: bold; }
-    video { display: none; }
+    body {
+      margin: 0;
+      font-family: 'Gmarket Sans', sans-serif;
+      background: #000;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #feedback {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 2;
+    }
+
     #startBtn {
-      position: absolute; top: 20px; right: 20px;
-      background-color: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 16px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #007AFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
       border-radius: 6px;
+      z-index: 3;
     }
   </style>
 </head>
@@ -52,8 +84,8 @@
         onFrame: async () => {
           await pose.send({ image: videoElement });
         },
-        width: 640,
-        height: 480,
+        width: window.innerWidth,
+        height: window.innerHeight,
       });
       camera.start();
     }
@@ -69,8 +101,8 @@
     }
 
     function onResults(results) {
-      canvas.width = videoElement.videoWidth;
-      canvas.height = videoElement.videoHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
@@ -86,6 +118,11 @@
       } else {
         feedbackEl.innerText = "📣 무릎을 더 굽혀보세요!";
       }
+
+      // 🔍 디버깅용 각도 표시
+      ctx.fillStyle = "yellow";
+      ctx.font = "20px Gmarket Sans";
+      ctx.fillText(`무릎 각도: ${angle.toFixed(1)}°`, 10, 30);
     }
 
     document.getElementById("startBtn").onclick = () => {
