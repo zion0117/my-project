@@ -6,14 +6,43 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <style>
-    body { margin: 0; font-family: 'Gmarket Sans', sans-serif; background: #000; color: white; text-align: center; }
-    #canvas { position: absolute; top: 0; left: 0; z-index: 1; }
-    #feedback { position: absolute; top: 20px; left: 0; width: 100%; font-size: 24px; font-weight: bold; }
-    video { display: none; }
+    body {
+      margin: 0;
+      font-family: 'Gmarket Sans', sans-serif;
+      background: #000;
+      color: white;
+      text-align: center;
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #feedback {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      z-index: 2;
+    }
     #startBtn {
-      position: absolute; top: 20px; right: 20px;
-      background-color: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 16px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #007AFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
       border-radius: 6px;
+      z-index: 3;
+    }
+    video {
+      display: none;
     }
   </style>
 </head>
@@ -68,7 +97,17 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      // 플랭크: 어깨-골반-무릎 수평 체크
+      // ✅ 관절 점 그리기
+      ctx.fillStyle = "#00FF00";
+      for (let i = 0; i < landmarks.length; i++) {
+        const x = landmarks[i].x * canvas.width;
+        const y = landmarks[i].y * canvas.height;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      // ✅ 자세 평가
       const shoulderY = landmarks[12].y;
       const hipY = landmarks[24].y;
       const kneeY = landmarks[26].y;
@@ -79,8 +118,14 @@
         feedbackEl.innerText = "✅ 좋은 자세예요!";
         correctCount++;
       } else {
-        feedbackEl.innerText = "📣 엉덩이를 조금 낮추세요!";
+        feedbackEl.innerText = "📣 엉덩이를 조금 낮춰보세요!";
       }
+
+      // ✅ 수치 피드백
+      ctx.fillStyle = "yellow";
+      ctx.font = "20px Gmarket Sans";
+      ctx.fillText(`어깨-엉덩이 간격: ${(Math.abs(shoulderY - hipY) * 100).toFixed(1)}`, 10, 30);
+      ctx.fillText(`엉덩이-무릎 간격: ${(Math.abs(hipY - kneeY) * 100).toFixed(1)}`, 10, 60);
     }
 
     document.getElementById("startBtn").onclick = () => {
@@ -88,7 +133,7 @@
       feedbackEl.innerText = "📷 자세 인식 시작!";
     };
 
-    // 운동 종료 시 결과 전송
+    // ✅ React Native 앱으로 결과 전송
     window.onbeforeunload = () => {
       const result = {
         exercise: "플랭크",
