@@ -29,7 +29,7 @@
       text-align: center;
       z-index: 2;
     }
-    #startBtn {
+    #startBtn, #endBtn {
       position: absolute;
       top: 20px;
       right: 20px;
@@ -41,6 +41,10 @@
       border-radius: 6px;
       z-index: 3;
     }
+    #endBtn {
+      top: 60px;
+      background-color: #FF3B30;
+    }
     video {
       display: none;
     }
@@ -49,11 +53,16 @@
 <body>
   <div id="feedback">[플랭크 자세 분석 대기 중]</div>
   <button id="startBtn">운동 시작</button>
+  <button id="endBtn" style="display: none;">운동 종료</button>
   <video id="input_video" playsinline></video>
   <canvas id="canvas"></canvas>
 
   <script>
     let correctCount = 0;
+    let frameCount = 0;
+    let repCount = 0;
+    let isExercising = false;
+    let startTime = null;
 
     const feedbackEl = document.getElementById('feedback');
     const canvas = document.getElementById('canvas');
@@ -88,6 +97,8 @@
     }
 
     function onResults(results) {
+      if (!isExercising) return;
+
       canvas.width = videoElement.videoWidth;
       canvas.height = videoElement.videoHeight;
 
@@ -97,7 +108,7 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      // ✅ 관절 점 그리기
+      // ✅ 관절 시각화
       ctx.fillStyle = "#00FF00";
       for (let i = 0; i < landmarks.length; i++) {
         const x = landmarks[i].x * canvas.width;
@@ -107,40 +118,61 @@
         ctx.fill();
       }
 
-      // ✅ 자세 평가
       const shoulderY = landmarks[12].y;
       const hipY = landmarks[24].y;
       const kneeY = landmarks[26].y;
-
       const alignmentScore = Math.abs(shoulderY - hipY) + Math.abs(hipY - kneeY);
 
+      // ✅ 정확한 자세일 때 카운팅
       if (alignmentScore < 0.05) {
-        feedbackEl.innerText = "✅ 좋은 자세예요!";
         correctCount++;
+        frameCount++;
+        if (frameCount % 30 === 0) {  // 대략 1초마다
+          repCount++;
+        }
+        feedbackEl.innerText = `✅ 좋은 자세예요! (${repCount}초 유지 중)`;
       } else {
-        feedbackEl.innerText = "📣 엉덩이를 조금 낮춰보세요!";
+        feedbackEl.innerText = "📣 엉덩이를 더 낮춰보세요!";
+        frameCount = 0; // 다시 자세 무너졌을 경우 초기화
       }
 
-      // ✅ 수치 피드백
+      // ✅ 수치 출력
       ctx.fillStyle = "yellow";
       ctx.font = "20px Gmarket Sans";
       ctx.fillText(`어깨-엉덩이 간격: ${(Math.abs(shoulderY - hipY) * 100).toFixed(1)}`, 10, 30);
       ctx.fillText(`엉덩이-무릎 간격: ${(Math.abs(hipY - kneeY) * 100).toFixed(1)}`, 10, 60);
     }
 
+    // ✅ 시작 버튼
     document.getElementById("startBtn").onclick = () => {
       startCamera();
+      isExercising = true;
+      startTime = new Date();
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endBtn").style.display = "inline-block";
       feedbackEl.innerText = "📷 자세 인식 시작!";
     };
 
-    // ✅ React Native 앱으로 결과 전송
-    window.onbeforeunload = () => {
+    // ✅ 종료 버튼 → 결과 전송
+    document.getElementById("endBtn").onclick = () => {
+      isExercising = false;
+      const endTime = new Date();
+      const duration = Math.round((endTime - startTime) / 1000); // 초 단위
+
       const result = {
         exercise: "플랭크",
         score: Math.min(100, correctCount),
-        timestamp: new Date().toISOString()
+        reps: repCount,
+        duration,
+        timestamp: endTime.toISOString()
       };
-      window.ReactNativeWebView?.postMessage(JSON.stringify(result));
+
+      if (window.ReactNativeWebView?.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(result));
+      }
+
+      feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
+      document.getElementById("endBtn").style.display = "none";
     };
   </script>
 </body>
