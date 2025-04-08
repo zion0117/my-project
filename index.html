@@ -39,7 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>추천된 운동 자세 보기</h1>
+  <h1>추천된 운동 수행하기</h1>
   <div class="exercise-list" id="exerciseContainer">
     <p>불러오는 중...</p>
   </div>
@@ -57,8 +57,9 @@
         container.innerHTML = "";
 
         Object.entries(exercises).forEach(([part, name]) => {
+          const fileName = name.toLowerCase().replace(/\s/g, "-"); // 공백 → 하이픈 처리
           const link = document.createElement("a");
-          link.href = `/${name.toLowerCase()}.html`;  // 예: 플랭크 → /plank.html
+          link.href = `${fileName}.html`;  // ✅ 같은 폴더 내에 있는 HTML로 연결
           link.className = "exercise-button";
           link.innerText = name;
           container.appendChild(link);
