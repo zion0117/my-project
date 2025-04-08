@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>플랭크 자세 교정</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <style>
+    body { margin: 0; font-family: 'Gmarket Sans', sans-serif; background: #000; color: white; text-align: center; }
+    #canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+    #feedback { position: absolute; top: 20px; left: 0; width: 100%; font-size: 24px; font-weight: bold; }
+    video { display: none; }
+    #startBtn {
+      position: absolute; top: 20px; right: 20px;
+      background-color: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 16px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="feedback">[플랭크 자세 분석 대기 중]</div>
+  <button id="startBtn">운동 시작</button>
+  <video id="input_video" playsinline></video>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    let correctCount = 0;
+
+    const feedbackEl = document.getElementById('feedback');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('input_video');
+
+    const pose = new Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`,
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+
+    pose.onResults(onResults);
+
+    let camera = null;
+
+    function startCamera() {
+      camera = new Camera(videoElement, {
+        onFrame: async () => {
+          await pose.send({ image: videoElement });
+        },
+        width: 640,
+        height: 480,
+      });
+      camera.start();
+    }
+
+    function onResults(results) {
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+      const landmarks = results.poseLandmarks;
+      if (!landmarks) return;
+
+      // 플랭크: 어깨-골반-무릎 수평 체크
+      const shoulderY = landmarks[12].y;
+      const hipY = landmarks[24].y;
+      const kneeY = landmarks[26].y;
+
+      const alignmentScore = Math.abs(shoulderY - hipY) + Math.abs(hipY - kneeY);
+
+      if (alignmentScore < 0.05) {
+        feedbackEl.innerText = "✅ 좋은 자세예요!";
+        correctCount++;
+      } else {
+        feedbackEl.innerText = "📣 엉덩이를 조금 낮추세요!";
+      }
+    }
+
+    document.getElementById("startBtn").onclick = () => {
+      startCamera();
+      feedbackEl.innerText = "📷 자세 인식 시작!";
+    };
+
+    // 운동 종료 시 결과 전송
+    window.onbeforeunload = () => {
+      const result = {
+        exercise: "플랭크",
+        score: Math.min(100, correctCount),
+        timestamp: new Date().toISOString()
+      };
+      window.ReactNativeWebView?.postMessage(JSON.stringify(result));
+    };
+  </script>
+</body>
+</html>
