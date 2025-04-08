@@ -48,18 +48,35 @@
     const container = document.getElementById('exerciseContainer');
     const urlParams = new URLSearchParams(window.location.search);
     const encodedExercises = urlParams.get("exercises");
-
+  
+    // ✅ 한글 운동명 → 파일명 매핑
+    const nameToFileMap = {
+      "플랭크": "plank",
+      "스쿼트": "squat",
+      "숄더 프레스": "shoulder-press",
+      "컬": "curl",
+      "랫풀다운": "latpulldown",
+      "크런치": "crunch",
+      "힙 브릿지": "hip-bridge",
+      "카프레이즈": "calf-raise"
+    };
+  
     if (!encodedExercises) {
       container.innerHTML = "<p>추천된 운동이 없습니다.</p>";
     } else {
       try {
         const exercises = JSON.parse(decodeURIComponent(encodedExercises));
         container.innerHTML = "";
-
+  
         Object.entries(exercises).forEach(([part, name]) => {
-          const fileName = name.toLowerCase().replace(/\s/g, "-"); // 공백 → 하이픈 처리
+          const fileName = nameToFileMap[name];
+          if (!fileName) {
+            console.warn(`⚠️ 매핑 안 된 운동: ${name}`);
+            return;
+          }
+  
           const link = document.createElement("a");
-          link.href = `${fileName}.html`;  // ✅ 같은 폴더 내에 있는 HTML로 연결
+          link.href = `${fileName}.html`;  // ✅ 정확한 파일명으로 연결
           link.className = "exercise-button";
           link.innerText = name;
           container.appendChild(link);
@@ -70,5 +87,6 @@
       }
     }
   </script>
+  
 </body>
 </html>
