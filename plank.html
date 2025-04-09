@@ -169,7 +169,19 @@
       };
 
       if (window.ReactNativeWebView?.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(result));
+        // ✅ 운동 결과 전송
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: "exercise_result",
+          data: result
+        }));
+
+        // ✅ 0.5초 후 Dashboard로 이동 요청
+        setTimeout(() => {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: "navigate",
+            target: "Dashboard"
+          }));
+        }, 500);
       }
 
       feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
