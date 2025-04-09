@@ -14,7 +14,6 @@
       text-align: center;
       overflow: hidden;
     }
-
     video, canvas {
       position: absolute;
       top: 0;
@@ -24,7 +23,6 @@
       object-fit: cover;
       z-index: 0;
     }
-
     #feedback {
       position: absolute;
       top: 20px;
@@ -35,7 +33,6 @@
       text-align: center;
       z-index: 2;
     }
-
     #startBtn, #endBtn {
       position: absolute;
       top: 20px;
@@ -48,7 +45,6 @@
       border-radius: 6px;
       z-index: 3;
     }
-
     #endBtn {
       top: 60px;
       background-color: #FF3B30;
@@ -113,7 +109,6 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      // ✅ 관절 시각화
       ctx.fillStyle = "#00FF00";
       for (let i = 0; i < landmarks.length; i++) {
         const x = landmarks[i].x * canvas.width;
@@ -165,23 +160,15 @@
         score: Math.min(100, correctCount),
         reps: repCount,
         duration,
-        timestamp: endTime.toISOString()
+        timestamp: endTime.toISOString(), // ISO 8601 for backend
+        savedAt: endTime.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) // local view
       };
 
       if (window.ReactNativeWebView?.postMessage) {
-        // ✅ 운동 결과 전송
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: "exercise_result",
           data: result
         }));
-
-        // ✅ 0.5초 후 Dashboard로 이동 요청
-        setTimeout(() => {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: "navigate",
-            target: "Dashboard"
-          }));
-        }, 500);
       }
 
       feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
