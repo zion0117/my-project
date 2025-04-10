@@ -61,7 +61,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       z-index: 4;
     }
 
@@ -87,7 +87,7 @@
   <video id="input_video" playsinline></video>
   <canvas id="canvas"></canvas>
 
-  <!-- ✅ 운동 종료 후 선택 버튼 -->
+  <!-- ✅ 운동 종료 후 버튼들 -->
   <div id="afterButtons">
     <button id="continueBtn">운동 계속하기</button>
     <button id="dashboardBtn">운동 결과 확인</button>
@@ -201,21 +201,20 @@
 
       if (window.ReactNativeWebView?.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify(result));
-
-        // 버튼만 띄우고 문구는 사라지게
-        setTimeout(() => {
-          document.getElementById("afterButtons").style.display = "flex";
-          feedbackEl.innerText = "";
-        }, 300);
       }
 
+      // 버튼 보여주기
       document.getElementById("endBtn").style.display = "none";
+      document.getElementById("afterButtons").style.display = "flex";
+      feedbackEl.innerText = "";
     };
 
+    // 운동 계속하기 = 페이지 새로고침
     document.getElementById("continueBtn").onclick = () => {
       location.reload();
     };
 
+    // 대시보드로 이동 요청
     document.getElementById("dashboardBtn").onclick = () => {
       if (window.ReactNativeWebView?.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify({
