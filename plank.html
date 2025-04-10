@@ -43,25 +43,26 @@
       background-color: #007AFF;
       color: white;
       border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 6px;
+      padding: 16px 32px;
+      font-size: 20px;
+      border-radius: 10px;
       z-index: 3;
+      cursor: pointer;
     }
 
     #endBtn {
-      top: 60px;
+      top: 80px;
       background-color: #FF3B30;
     }
 
     #afterButtons {
       display: none;
       position: absolute;
-      bottom: 40px;
+      bottom: 60px;
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 30px;
       z-index: 4;
     }
 
@@ -69,10 +70,11 @@
       background-color: #007AFF;
       color: white;
       border: none;
-      padding: 16px 28px;
-      font-size: 18px;
+      padding: 20px 36px;
+      font-size: 22px;
       font-weight: bold;
-      border-radius: 12px;
+      border-radius: 16px;
+      cursor: pointer;
     }
 
     #continueBtn {
@@ -87,7 +89,6 @@
   <video id="input_video" playsinline></video>
   <canvas id="canvas"></canvas>
 
-  <!-- ✅ 운동 종료 후 버튼들 -->
   <div id="afterButtons">
     <button id="continueBtn">운동 계속하기</button>
     <button id="dashboardBtn">운동 결과 확인</button>
@@ -203,18 +204,15 @@
         window.ReactNativeWebView.postMessage(JSON.stringify(result));
       }
 
-      // 버튼 보여주기
       document.getElementById("endBtn").style.display = "none";
       document.getElementById("afterButtons").style.display = "flex";
       feedbackEl.innerText = "";
     };
 
-    // 운동 계속하기 = 페이지 새로고침
     document.getElementById("continueBtn").onclick = () => {
       location.reload();
     };
 
-    // 대시보드로 이동 요청
     document.getElementById("dashboardBtn").onclick = () => {
       if (window.ReactNativeWebView?.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify({
