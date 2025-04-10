@@ -14,7 +14,6 @@
       text-align: center;
       overflow: hidden;
     }
-
     video, canvas {
       position: absolute;
       top: 0;
@@ -24,7 +23,6 @@
       object-fit: cover;
       z-index: 0;
     }
-
     #feedback {
       position: absolute;
       top: 20px;
@@ -35,7 +33,6 @@
       text-align: center;
       z-index: 2;
     }
-
     #startBtn, #endBtn {
       position: absolute;
       top: 20px;
@@ -48,10 +45,30 @@
       border-radius: 6px;
       z-index: 3;
     }
-
     #endBtn {
       top: 60px;
       background-color: #FF3B30;
+    }
+    #afterButtons {
+      display: none;
+      position: absolute;
+      bottom: 40px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      z-index: 4;
+    }
+    #continueBtn, #dashboardBtn {
+      background-color: #5856D6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+    #continueBtn {
+      background-color: #34C759;
     }
   </style>
 </head>
@@ -61,6 +78,12 @@
   <button id="endBtn" style="display: none;">운동 종료</button>
   <video id="input_video" playsinline></video>
   <canvas id="canvas"></canvas>
+
+  <!-- ✅ 운동 종료 후 버튼 -->
+  <div id="afterButtons">
+    <button id="continueBtn">운동 계속하기</button>
+    <button id="dashboardBtn">운동 결과 확인</button>
+  </div>
 
   <script>
     let correctCount = 0;
@@ -174,6 +197,20 @@
 
       feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
       document.getElementById("endBtn").style.display = "none";
+      document.getElementById("afterButtons").style.display = "flex";
+    };
+
+    document.getElementById("continueBtn").onclick = () => {
+      location.reload();
+    };
+
+    document.getElementById("dashboardBtn").onclick = () => {
+      if (window.ReactNativeWebView?.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: "navigate",
+          target: "Dashboard"
+        }));
+      }
     };
   </script>
 </body>
