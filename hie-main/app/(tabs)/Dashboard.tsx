@@ -26,7 +26,15 @@ const Dashboard = () => {
           orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => doc.data());
+        const data = snapshot.docs.map(doc => {
+          const d = doc.data();
+          // nested data 필드에 실제 값이 있을 경우 처리
+          const actual = d.data ? d.data : d;
+          return {
+            ...actual,
+            timestamp: new Date(actual.timestamp),
+          };
+        });
         setResults(data);
       } catch (err) {
         console.error("운동 결과 불러오기 실패:", err);
@@ -58,7 +66,7 @@ const Dashboard = () => {
       renderItem={({ item }) => (
         <View style={styles.card}>
           <Text style={styles.date}>
-            🗓 {new Date(item.timestamp).toLocaleDateString("ko-KR")}
+            🗓 {item.timestamp instanceof Date ? item.timestamp.toLocaleDateString("ko-KR") : "날짜 없음"}
           </Text>
           <Text style={styles.title}>{item.exercise}</Text>
           <Text style={styles.text}>

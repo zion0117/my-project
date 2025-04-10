@@ -113,7 +113,6 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      // ✅ 관절 시각화
       ctx.fillStyle = "#00FF00";
       for (let i = 0; i < landmarks.length; i++) {
         const x = landmarks[i].x * canvas.width;
@@ -165,23 +164,12 @@
         score: Math.min(100, correctCount),
         reps: repCount,
         duration,
-        timestamp: endTime.toISOString()
+        timestamp: endTime.toISOString(),
+        savedAt: endTime.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
       };
 
       if (window.ReactNativeWebView?.postMessage) {
-        // ✅ 운동 결과 전송
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: "exercise_result",
-          data: result
-        }));
-
-        // ✅ 0.5초 후 Dashboard로 이동 요청
-        setTimeout(() => {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: "navigate",
-            target: "Dashboard"
-          }));
-        }, 500);
+        window.ReactNativeWebView.postMessage(JSON.stringify(result));
       }
 
       feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
