@@ -14,6 +14,7 @@
       text-align: center;
       overflow: hidden;
     }
+
     video, canvas {
       position: absolute;
       top: 0;
@@ -23,6 +24,7 @@
       object-fit: cover;
       z-index: 0;
     }
+
     #feedback {
       position: absolute;
       top: 20px;
@@ -33,6 +35,7 @@
       text-align: center;
       z-index: 2;
     }
+
     #startBtn, #endBtn {
       position: absolute;
       top: 20px;
@@ -45,10 +48,12 @@
       border-radius: 6px;
       z-index: 3;
     }
+
     #endBtn {
       top: 60px;
       background-color: #FF3B30;
     }
+
     #afterButtons {
       display: none;
       position: absolute;
@@ -56,17 +61,20 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 24px;
       z-index: 4;
     }
+
     #continueBtn, #dashboardBtn {
-      background-color: #5856D6;
+      background-color: #007AFF;
       color: white;
       border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 6px;
+      padding: 16px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 12px;
     }
+
     #continueBtn {
       background-color: #34C759;
     }
@@ -79,7 +87,7 @@
   <video id="input_video" playsinline></video>
   <canvas id="canvas"></canvas>
 
-  <!-- ✅ 운동 종료 후 버튼 -->
+  <!-- ✅ 운동 종료 후 선택 버튼 -->
   <div id="afterButtons">
     <button id="continueBtn">운동 계속하기</button>
     <button id="dashboardBtn">운동 결과 확인</button>
@@ -193,11 +201,15 @@
 
       if (window.ReactNativeWebView?.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify(result));
+
+        // 버튼만 띄우고 문구는 사라지게
+        setTimeout(() => {
+          document.getElementById("afterButtons").style.display = "flex";
+          feedbackEl.innerText = "";
+        }, 300);
       }
 
-      feedbackEl.innerText = "🏁 운동 종료! 결과 전송됨.";
       document.getElementById("endBtn").style.display = "none";
-      document.getElementById("afterButtons").style.display = "flex";
     };
 
     document.getElementById("continueBtn").onclick = () => {
