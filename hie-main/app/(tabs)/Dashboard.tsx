@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator
+} from "react-native";
 import { getAuth } from "firebase/auth";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs
+} from "firebase/firestore";
 import { db } from "./firebaseConfig";
+import HomeButton from "../../components/HomeButton"; // ✅ 홈 버튼 import (경로 조정 필요)
 
 const getFeedback = (score: number) => {
   if (score >= 90) return "✅ 자세 아주 좋음!";
@@ -26,9 +39,8 @@ const Dashboard = () => {
           orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => {
+        const data = snapshot.docs.map((doc) => {
           const d = doc.data();
-          // nested data 필드에 실제 값이 있을 경우 처리
           const actual = d.data ? d.data : d;
           return {
             ...actual,
@@ -47,35 +59,44 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#007AFF" />;
+    return (
+      <View style={{ flex: 1 }}>
+        <HomeButton />
+        <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#007AFF" />
+      </View>
+    );
   }
 
   if (results.length === 0) {
     return (
       <View style={styles.center}>
+        <HomeButton />
         <Text style={styles.noData}>아직 저장된 운동 결과가 없어요!</Text>
       </View>
     );
   }
 
   return (
-    <FlatList
-      data={results}
-      keyExtractor={(item, index) => `${item.exercise}-${index}`}
-      contentContainerStyle={styles.listContainer}
-      renderItem={({ item }) => (
-        <View style={styles.card}>
-          <Text style={styles.date}>
-            🗓 {item.timestamp instanceof Date ? item.timestamp.toLocaleDateString("ko-KR") : "날짜 없음"}
-          </Text>
-          <Text style={styles.title}>{item.exercise}</Text>
-          <Text style={styles.text}>
-            ✅ 점수: {item.score}점 | 🔁 반복: {item.reps || 0}회 | ⏱ 시간: {item.duration || 0}초
-          </Text>
-          <Text style={styles.feedback}>📣 {getFeedback(item.score)}</Text>
-        </View>
-      )}
-    />
+    <View style={{ flex: 1 }}>
+      <HomeButton />
+      <FlatList
+        data={results}
+        keyExtractor={(item, index) => `${item.exercise}-${index}`}
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.date}>
+              🗓 {item.timestamp instanceof Date ? item.timestamp.toLocaleDateString("ko-KR") : "날짜 없음"}
+            </Text>
+            <Text style={styles.title}>{item.exercise}</Text>
+            <Text style={styles.text}>
+              ✅ 점수: {item.score}점 | 🔁 반복: {item.reps || 0}회 | ⏱ 시간: {item.duration || 0}초
+            </Text>
+            <Text style={styles.feedback}>📣 {getFeedback(item.score)}</Text>
+          </View>
+        )}
+      />
+    </View>
   );
 };
 
