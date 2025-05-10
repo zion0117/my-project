@@ -1,13 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { View,  StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert } from "react-native";
 import * as Location from "expo-location";
-import { CustomText as Text } from "../../components/CustomText";
-import axios from "axios";
-import MapView, { Marker } from "react-native-maps";
 import Constants from "expo-constants";
-
-// ✅ Google Places API 키 (환경 변수에서 가져오기)
-const GOOGLE_PLACES_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey || "";
+import axios from "axios";
 
 interface Gym {
   id: string;
@@ -17,38 +12,45 @@ interface Gym {
   longitude: number;
 }
 
-export default function LocationRecommendation() {
+const GOOGLE_PLACES_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey || "";
+
+const LocationRecommendation = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getCurrentLocation();
+    getLocationAndGyms();
   }, []);
 
-  // ✅ 현재 위치 가져오기
-  const getCurrentLocation = async () => {
+  const getLocationAndGyms = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        alert("위치 접근 권한이 필요합니다!");
+        Alert.alert("권한 오류", "위치 권한이 필요합니다.");
+        setLoading(false);
         return;
       }
 
       const currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
-      fetchNearbyGyms(currentLocation.coords.latitude, currentLocation.coords.longitude);
-    } catch (error) {
-      console.error("위치 가져오기 실패:", error);
-    }
-  };
 
-  // ✅ 근처 운동 시설 검색 (Google Places API 활용)
-  const fetchNearbyGyms = async (latitude: number, longitude: number) => {
-    try {
+      const { latitude, longitude } = currentLocation.coords;
+
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=3000&type=gym&key=${GOOGLE_PLACES_API_KEY}`
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
+        {
+          params: {
+            location: `${latitude},${longitude}`,
+            radius: 3000,
+            keyword: "헬스장",
+            language: "ko",
+            key: GOOGLE_PLACES_API_KEY
+          }
+        }
       );
+
+      console.log("💬 Google Places 응답:", response.data);
 
       if (response.data.results) {
         const gymList = response.data.results.map((gym: any) => ({
@@ -56,76 +58,53 @@ export default function LocationRecommendation() {
           name: gym.name,
           address: gym.vicinity,
           latitude: gym.geometry.location.lat,
-          longitude: gym.geometry.location.lng,
+          longitude: gym.geometry.location.lng
         }));
-
         setGyms(gymList);
+      } else {
+        Alert.alert("검색 결과 없음", "근처 헬스장을 찾을 수 없습니다.");
       }
     } catch (error) {
-      console.error("운동 시설 검색 실패:", error);
+      console.error("❌ 시설 검색 오류:", error);
+      Alert.alert("오류 발생", "운동시설을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading) {
+    return <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />;
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📍 내 주변 운동 시설</Text>
-
-      {/* ✅ 로딩 인디케이터 */}
-      {loading && <ActivityIndicator size="large" color="#007AFF" />}
-
-      {/* ✅ 지도 표시 */}
-      {location && (
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
-        >
-          {/* ✅ 현재 위치 마커 */}
-          <Marker coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }} title="현재 위치" />
-
-          {/* ✅ 운동 시설 마커 */}
-          {gyms.map((gym) => (
-            <Marker key={gym.id} coordinate={{ latitude: gym.latitude, longitude: gym.longitude }} title={gym.name} />
-          ))}
-        </MapView>
+      <Text style={styles.title}>📍 내 위치 기반 헬스장 추천</Text>
+      {gyms.length > 0 ? (
+        <FlatList
+          data={gyms}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.gymItem}>
+              <Text style={styles.gymName}>🏋️ {item.name}</Text>
+              <Text style={styles.gymAddress}>{item.address}</Text>
+            </View>
+          )}
+        />
+      ) : (
+        <Text style={styles.noResult}>근처에 헬스장을 찾을 수 없습니다.</Text>
       )}
-
-      {/* ✅ 운동 시설 리스트 */}
-      <FlatList
-        data={gyms}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.gymItem}>
-            <Text style={styles.gymName}>{item.name}</Text>
-            <Text style={styles.gymAddress}>{item.address}</Text>
-            <TouchableOpacity
-              style={styles.navigateButton}
-              onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`)}
-            >
-              <Text style={styles.navigateButtonText}>길찾기</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
     </View>
   );
-}
+};
 
-// ✅ 스타일 정의
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  map: { width: "100%", height: 250, marginBottom: 10 },
-  gymItem: { backgroundColor: "#F5F5F5", padding: 12, borderRadius: 8, marginVertical: 8 },
-  gymName: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  gymAddress: { fontSize: 14, color: "#666", marginBottom: 5 },
-  navigateButton: { backgroundColor: "#007AFF", padding: 8, borderRadius: 5, alignItems: "center" },
-  navigateButtonText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
+  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
+  gymItem: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#ddd" },
+  gymName: { fontSize: 16, fontWeight: "500" },
+  gymAddress: { fontSize: 14, color: "#555" },
+  noResult: { textAlign: "center", color: "#888", fontSize: 16, marginTop: 20 }
 });
 
+export default LocationRecommendation;

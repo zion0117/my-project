@@ -1,18 +1,60 @@
 {
   "cli": {
-    "version": ">= 15.0.15",
+    "version": ">= 3.0.0",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "GNEWS_API_KEY": "${GNEWS_API_KEY}",
+        "GOOGLE_ANDROID_CLIENT_ID": "${GOOGLE_ANDROID_CLIENT_ID}",
+        "GOOGLE_IOS_CLIENT_ID": "${GOOGLE_IOS_CLIENT_ID}",
+        "GOOGLE_WEB_CLIENT_ID": "${GOOGLE_WEB_CLIENT_ID}",
+        "GOOGLE_REDIRECT_URI": "${GOOGLE_REDIRECT_URI}",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
+        "FIREBASE_AUTH_DOMAIN": "${FIREBASE_AUTH_DOMAIN}",
+        "FIREBASE_PROJECT_ID": "${FIREBASE_PROJECT_ID}",
+        "FIREBASE_STORAGE_BUCKET": "${FIREBASE_STORAGE_BUCKET}",
+        "FIREBASE_MESSAGING_SENDER_ID": "${FIREBASE_MESSAGING_SENDER_ID}",
+        "FIREBASE_APP_ID": "${FIREBASE_APP_ID}",
+        "FIREBASE_MEASUREMENT_ID": "${FIREBASE_MEASUREMENT_ID}",
+        "NEWS_API_KEY": "${NEWS_API_KEY}",
+        "GOOGLE_PLACES_API_KEY": "${GOOGLE_PLACES_API_KEY}",
+        "NAVER_CLIENT_ID": "${NAVER_CLIENT_ID}",
+        "NAVER_CLIENT_SECRET": "${NAVER_CLIENT_SECRET}"
+      }
     },
     "preview": {
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "GNEWS_API_KEY": "${GNEWS_API_KEY}",
+        "GOOGLE_ANDROID_CLIENT_ID": "${GOOGLE_ANDROID_CLIENT_ID}",
+        "GOOGLE_IOS_CLIENT_ID": "${GOOGLE_IOS_CLIENT_ID}",
+        "GOOGLE_WEB_CLIENT_ID": "${GOOGLE_WEB_CLIENT_ID}",
+        "GOOGLE_REDIRECT_URI": "${GOOGLE_REDIRECT_URI}",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
+        "FIREBASE_AUTH_DOMAIN": "${FIREBASE_AUTH_DOMAIN}",
+        "FIREBASE_PROJECT_ID": "${FIREBASE_PROJECT_ID}",
+        "FIREBASE_STORAGE_BUCKET": "${FIREBASE_STORAGE_BUCKET}",
+        "FIREBASE_MESSAGING_SENDER_ID": "${FIREBASE_MESSAGING_SENDER_ID}",
+        "FIREBASE_APP_ID": "${FIREBASE_APP_ID}",
+        "FIREBASE_MEASUREMENT_ID": "${FIREBASE_MEASUREMENT_ID}",
+        "NEWS_API_KEY": "${NEWS_API_KEY}",
+        "GOOGLE_PLACES_API_KEY": "${GOOGLE_PLACES_API_KEY}",
+        "NAVER_CLIENT_ID": "${NAVER_CLIENT_ID}",
+        "NAVER_CLIENT_SECRET": "${NAVER_CLIENT_SECRET}"
+      }
     }
   },
   "submit": {
