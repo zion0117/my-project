@@ -38,3 +38,7 @@ yarn-error.*
 app-example
 
 .env
+google-services.json
+android/app/google-services.json
+android/app/src/main/AndroidManifest.xml
+
