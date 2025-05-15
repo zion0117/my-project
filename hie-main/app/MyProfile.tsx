@@ -104,9 +104,20 @@ const MyProfile = () => {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>성별</Text>
-        <TextInput value={gender} onChangeText={setGender} placeholder="예: 남성 / 여성" style={styles.input} />
-      </View>
+  <Text style={styles.label}>성별</Text>
+  <View style={styles.genderOptions}>
+    {['여성', '남성', '선택안함'].map((option) => (
+      <TouchableOpacity
+        key={option}
+        style={[styles.genderButton, gender === option && styles.genderButtonSelected]}
+        onPress={() => setGender(option)}
+      >
+        <Text style={[styles.genderText, gender === option && styles.genderTextSelected]}>{option}</Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+</View>
+      
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>나이</Text>
@@ -118,18 +129,51 @@ const MyProfile = () => {
         <TextInput value={location} onChangeText={setLocation} placeholder="예: 서울" style={styles.input} />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
-        <Text style={styles.saveButtonText}>{loading ? "저장 중..." : "정보 저장"}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.homeButton} onPress={() => router.replace("/")}> 
-        <Text style={styles.homeButtonText}>🏠 홈으로</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+  <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
+    <Text style={styles.saveButtonText}>{loading ? "저장 중..." : "정보 저장"}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.homeButton} onPress={() => router.replace("/")}>
+    <Text style={styles.homeButtonText}>🏠 홈으로</Text>
+  </TouchableOpacity>
+</View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 20,
+  },
+  genderOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  genderButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  genderButtonSelected: {
+    backgroundColor: '#1C7ED6',
+    borderColor: '#1C7ED6',
+  },
+  genderText: {
+    color: '#444',
+    fontSize: 14,
+    fontFamily: 'GmarketSansMedium',
+  },
+  genderTextSelected: {
+    color: '#fff',
+  },
   container: {
     paddingVertical: 32,
     paddingHorizontal: 20,
@@ -137,7 +181,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 24,
     textAlign: "center",
@@ -182,16 +226,17 @@ const styles = StyleSheet.create({
     fontFamily: "GmarketSansMedium",
   },
   input: {
-    fontSize: 16,
+    fontSize: 15,
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 8,
     backgroundColor: "#fff",
     fontFamily: "GmarketSansMedium",
   },
   saveButton: {
-    marginTop: 20,
+    flex: 1,
     backgroundColor: "#1C7ED6",
     paddingVertical: 14,
     borderRadius: 8,
@@ -204,9 +249,9 @@ const styles = StyleSheet.create({
     fontFamily: "GmarketSansMedium",
   },
   homeButton: {
-    marginTop: 20,
+    flex: 1,
     backgroundColor: "#B2F2BB",
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
   },
