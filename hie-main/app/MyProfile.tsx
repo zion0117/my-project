@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
-import { getAuth } from "firebase/auth";
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  Image,
+} from "react-native";
+import { getAuth, updateProfile } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "expo-router";
 import { CustomText as Text } from "../components/CustomText";
+import * as ImagePicker from "expo-image-picker";
 
 const MyProfile = () => {
   const router = useRouter();
@@ -11,6 +20,8 @@ const MyProfile = () => {
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,22 +35,39 @@ const MyProfile = () => {
           setGender(data.gender || "");
           setAge(data.age || "");
           setLocation(data.location || "");
+          setNickname(data.nickname || user.displayName || "");
+          setPhotoURL(data.photoURL || user.photoURL || "");
         }
       }
     };
     fetchUserData();
   }, [user]);
 
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setPhotoURL(result.assets[0].uri);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setLoading(true);
     const db = getFirestore();
     try {
+      await updateProfile(user, { displayName: nickname, photoURL });
       await setDoc(doc(db, "users", user.uid), {
         gender,
         age,
         location,
+        nickname,
+        photoURL,
       }, { merge: true });
+
       Alert.alert("✅ 저장 완료", "정보가 저장되었습니다!");
     } catch (error) {
       console.error("저장 오류:", error);
@@ -51,6 +79,24 @@ const MyProfile = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>👤 내 정보</Text>
+
+      {photoURL ? (
+        <Image source={{ uri: photoURL }} style={styles.profileImage} />
+      ) : null}
+
+      <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
+        <Text style={styles.photoButtonText}>📷 프로필 사진 설정하기</Text>
+      </TouchableOpacity>
+
+      <View style={styles.inputGroup}> 
+        <Text style={styles.label}>닉네임</Text>
+        <TextInput
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="예: 홍길동"
+          style={styles.input}
+        />
+      </View>
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>이메일</Text>
@@ -76,8 +122,7 @@ const MyProfile = () => {
         <Text style={styles.saveButtonText}>{loading ? "저장 중..." : "정보 저장"}</Text>
       </TouchableOpacity>
 
-      {/* ✅ 홈으로 돌아가기 버튼 */}
-      <TouchableOpacity style={styles.homeButton} onPress={() => router.replace("/")}>
+      <TouchableOpacity style={styles.homeButton} onPress={() => router.replace("/")}> 
         <Text style={styles.homeButtonText}>🏠 홈으로</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -86,8 +131,9 @@ const MyProfile = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    backgroundColor: "#F5FAFE",
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    backgroundColor: "#F0F8FF",
     flexGrow: 1,
   },
   title: {
@@ -96,14 +142,36 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: "center",
     color: "#1C7ED6",
+    fontFamily: "GmarketSansMedium",
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignSelf: "center",
+    marginBottom: 12,
+  },
+  photoButton: {
+    backgroundColor: "#D0EBFF",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  photoButtonText: {
+    color: "#1C7ED6",
+    fontSize: 14,
+    fontFamily: "GmarketSansMedium",
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     color: "#888",
     marginBottom: 6,
+    fontFamily: "GmarketSansMedium",
   },
   staticText: {
     fontSize: 16,
@@ -111,6 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#eaeaea",
     padding: 10,
     borderRadius: 8,
+    fontFamily: "GmarketSansMedium",
   },
   input: {
     fontSize: 16,
@@ -119,6 +188,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     backgroundColor: "#fff",
+    fontFamily: "GmarketSansMedium",
   },
   saveButton: {
     marginTop: 20,
@@ -131,6 +201,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
   },
   homeButton: {
     marginTop: 20,
@@ -143,6 +214,7 @@ const styles = StyleSheet.create({
     color: "#2B8A3E",
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
   },
 });
 

@@ -13,14 +13,14 @@ const GoogleSignInButton = () => {
   const auth = getAuth();
 
   // ✅ 클라이언트 ID 설정 (Android/iOS)
-  const androidClientId = Constants.expoConfig?.extra?.googleAuth?.androidClientId;
+  const androidClientId = "193222581186-oemf1raknn4jbj1ag3jqqfmovumme2ji.apps.googleusercontent.com";
   const iosClientId = Constants.expoConfig?.extra?.googleAuth?.iosClientId;
 
   const clientId = Platform.OS === 'android' ? androidClientId : iosClientId;
 
   // ✅ Google 로그인 요청 초기화 (redirectUri 생략!)
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "193222581186-oemf1raknn4jbj1ag3jqqfmovumme2ji.apps.googleusercontent.com",   // 꼭 넣어야 함
+    androidClientId: "193222581186-oemf1raknn4jbj1ag3jqqfmovumme2ji.apps.googleusercontent.com",   
     scopes: ['openid', 'profile', 'email'],
   });
 

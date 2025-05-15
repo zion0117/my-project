@@ -9,18 +9,19 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { collection, addDoc, onSnapshot, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from './firebaseConfig';
-import { useRouter } from 'expo-router'; // ✅ 추가
+import { useRouter } from 'expo-router';
 
 const Social = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [newPost, setNewPost] = useState('');
   const auth = getAuth();
-  const router = useRouter(); // ✅ 홈 이동용 라우터
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'posts'), (snapshot) => {
@@ -42,7 +43,8 @@ const Social = () => {
     try {
       await addDoc(collection(db, 'posts'), {
         title: newPost,
-        author: user.email || '익명',
+        author: user.displayName || '익명',
+        photoURL: user.photoURL || null,
         timestamp: Timestamp.now(),
         likes: 0,
       });
@@ -64,7 +66,7 @@ const Social = () => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {/* ✅ 홈으로 돌아가기 버튼 */}
+      {/* 홈으로 돌아가기 버튼 */}
       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/home')}>
         <Ionicons name="arrow-back" size={20} color="#007AFF" />
         <Text style={styles.homeButtonText}>홈으로</Text>
@@ -72,6 +74,17 @@ const Social = () => {
 
       <Text style={styles.header}>💬 커뮤니티</Text>
 
+      {/* 팀 활동 모집 섹션 */}
+      <View style={styles.teamCard}>
+        <Ionicons name="megaphone-outline" size={20} color="#1E90FF" style={{ marginRight: 8 }} />
+        <Text style={styles.teamTitle}>함께 운동할 사람을 찾고 있나요?</Text>
+        <Text style={styles.teamSubtitle}>지금 바로 팀 활동을 모집해보세요!</Text>
+        <TouchableOpacity style={styles.teamButton} onPress={() => Alert.alert('준비 중입니다')}>
+          <Text style={styles.teamButtonText}>팀 만들기</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 글 작성 입력창 */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -84,6 +97,7 @@ const Social = () => {
         </TouchableOpacity>
       </View>
 
+      {/* 게시글 목록 */}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -91,7 +105,11 @@ const Social = () => {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="person-circle-outline" size={24} color="#1877f2" />
+              {item.photoURL ? (
+                <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+              ) : (
+                <Ionicons name="person-circle-outline" size={24} color="#1877f2" />
+              )}
               <Text style={styles.authorText}>{item.author}</Text>
             </View>
             <Text style={styles.postText}>{item.title}</Text>
@@ -107,7 +125,13 @@ const Social = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FB', padding: 16 },
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  container: { flex: 1, backgroundColor: '#F0F8FF', padding: 16 }, // 연한 파란색 배경
   homeButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -119,6 +143,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 6,
     fontWeight: '500',
+    fontFamily: 'GmarketSansMedium',
   },
   header: {
     fontSize: 24,
@@ -126,6 +151,38 @@ const styles = StyleSheet.create({
     color: '#222',
     marginBottom: 16,
     textAlign: 'center',
+    fontFamily: 'GmarketSansMedium',
+  },
+  teamCard: {
+    backgroundColor: '#E0F0FF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  teamTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginVertical: 4,
+    fontFamily: 'GmarketSansMedium',
+    color: '#333',
+  },
+  teamSubtitle: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 10,
+    fontFamily: 'GmarketSansMedium',
+  },
+  teamButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  teamButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'GmarketSansMedium',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -144,6 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 16,
+    fontFamily: 'GmarketSansMedium',
   },
   postButton: {
     backgroundColor: '#1877f2',
@@ -171,11 +229,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: '600',
     color: '#444',
+    fontFamily: 'GmarketSansMedium',
   },
   postText: {
     fontSize: 13,
     color: '#333',
     marginVertical: 8,
+    fontFamily: 'GmarketSansMedium',
   },
   likeButton: {
     flexDirection: 'row',
@@ -192,6 +252,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#e0245e',
     fontWeight: '500',
+    fontFamily: 'GmarketSansMedium',
   },
 });
 
