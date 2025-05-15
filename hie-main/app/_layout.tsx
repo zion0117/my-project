@@ -23,6 +23,10 @@ export default function RootLayout() {
   // ✅ 폰트 로드 후 스플래시 화면 숨김
   useEffect(() => {
     if (fontsLoaded) {
+      // @ts-ignore
+      Text.defaultProps = Text.defaultProps || {};
+      // @ts-ignore
+      Text.defaultProps.style = { fontFamily: 'GmarketSansMedium' };
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
