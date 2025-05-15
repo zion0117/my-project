@@ -20,7 +20,7 @@ const GoogleSignInButton = () => {
 
   // ✅ Google 로그인 요청 초기화 (redirectUri 생략!)
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId,
+    androidClientId: "193222581186-oemf1raknn4jbj1ag3jqqfmovumme2ji.apps.googleusercontent.com",   // 꼭 넣어야 함
     scopes: ['openid', 'profile', 'email'],
   });
 

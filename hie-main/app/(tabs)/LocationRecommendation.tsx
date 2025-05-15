@@ -12,7 +12,7 @@ interface Gym {
   longitude: number;
 }
 
-const GOOGLE_PLACES_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey || "";
+const GOOGLE_PLACES_API_KEY = "AIzaSyBSnwcDaP4RHZeJBCfMcpAY-2t0GEsbylg";
 
 const LocationRecommendation = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);

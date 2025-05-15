@@ -4,8 +4,8 @@ import { View, FlatList, Text, ActivityIndicator, StyleSheet, TouchableOpacity, 
 import axios from "axios";
 import Constants from "expo-constants";
 
-const NAVER_CLIENT_ID = Constants.expoConfig?.extra?.naverClientId;
-const NAVER_CLIENT_SECRET = Constants.expoConfig?.extra?.naverClientSecret;
+const NAVER_CLIENT_ID = "4aVFZccvVJgF7qCpiiDv";
+const NAVER_CLIENT_SECRET = "NUyJwSYKB9";
 
 interface Article {
   title: string;
