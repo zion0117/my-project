@@ -16,7 +16,7 @@
 
     #cameraWrapper {
       width: 100vw;
-      height: 85vh; /* 카메라 영역을 85%로 줄임 */
+      height: 85vh;
       position: relative;
       overflow: hidden;
     }
@@ -37,7 +37,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: space-around;
       padding: 10px 0;
       background-color: #111;
       z-index: 2;
@@ -51,6 +51,12 @@
       border-radius: 10px;
       color: white;
       text-shadow: 1px 1px 5px black;
+    }
+
+    #scoreDisplay {
+      font-size: 20px;
+      color: #FFD700;
+      text-shadow: 1px 1px 3px black;
     }
 
     #startBtn, #endBtn {
@@ -100,6 +106,7 @@
 
   <div id="uiWrapper">
     <div id="feedback">[플랭크 자세 분석 대기 중]</div>
+    <div id="scoreDisplay">점수: 0점</div>
     <div id="buttonGroup">
       <button id="startBtn">운동 시작</button>
       <button id="endBtn">운동 종료</button>
@@ -118,6 +125,7 @@
     let startTime = null;
 
     const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('scoreDisplay');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const videoElement = document.getElementById('input_video');
@@ -158,6 +166,12 @@
       ctx.stroke();
     }
 
+    function getScoreFromAlignment(score) {
+      const maxScore = 0.2;
+      const normalized = Math.max(0, Math.min(1, (maxScore - score) / maxScore));
+      return Math.round(normalized * 100);
+    }
+
     function onResults(results) {
       if (!isExercising) return;
 
@@ -170,7 +184,7 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      // Draw glowing joints
+      // Draw joints
       for (let i = 0; i < landmarks.length; i++) {
         const x = landmarks[i].x * canvas.width;
         const y = landmarks[i].y * canvas.height;
@@ -183,14 +197,15 @@
         ctx.fill();
       }
 
-      // Draw shoulder-hip-knee connection
-      drawConnection(landmarks[12], landmarks[24], "#00FFFF");
-      drawConnection(landmarks[24], landmarks[26], "#FF00FF");
+      drawConnection(landmarks[12], landmarks[24], "#00FFFF"); // shoulder to hip
+      drawConnection(landmarks[24], landmarks[26], "#FF00FF"); // hip to knee
 
       const shoulderY = landmarks[12].y;
       const hipY = landmarks[24].y;
       const kneeY = landmarks[26].y;
       const alignmentScore = Math.abs(shoulderY - hipY) + Math.abs(hipY - kneeY);
+      const liveScore = getScoreFromAlignment(alignmentScore);
+      scoreEl.innerText = `점수: ${liveScore}점`;
 
       if (alignmentScore < 0.05) {
         correctCount++;
@@ -235,6 +250,7 @@
       document.getElementById("endBtn").style.display = "none";
       document.getElementById("afterButtons").style.display = "flex";
       feedbackEl.innerText = "";
+      scoreEl.innerText = "점수: 0점";
     };
 
     document.getElementById("continueBtn").onclick = () => {
