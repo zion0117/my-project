@@ -6,14 +6,10 @@ import { getAuth } from "firebase/auth";
 import axios from "axios";
 import { CustomText as Text } from "../components/CustomText";
 
-// ✅ Firebase 연결
 const db = getFirestore();
 const auth = getAuth();
-
-// ✅ OpenAI API 키 가져오기 (Expo 환경 변수 활용)
 const OPENAI_API_KEY = Constants.expoConfig?.extra?.openaiApiKey || "";
 
-// ✅ OpenAI API 응답 타입 정의
 interface OpenAIResponse {
   choices: { message: { content: string } }[];
 }
@@ -23,10 +19,8 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ 메시지 전송 및 OpenAI 응답 처리
   const sendMessage = async () => {
     if (!inputText.trim()) return;
-    
     const userMessage = { id: Date.now().toString(), text: inputText, sender: "user" };
     setMessages((prev) => [...prev, userMessage]);
 
@@ -49,21 +43,25 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
     }
   };
 
-  // ✅ OpenAI API 호출
   const generateBotResponse = async (userInput: string) => {
     try {
       const response = await axios.post<OpenAIResponse>(
         "https://api.openai.com/v1/chat/completions",
         {
           model: "gpt-3.5-turbo",
-          messages: [{ role: "system", content: "운동 전문가로서 질문에 답해주세요." }, { role: "user", content: userInput }],
+          messages: [
+            { role: "system", content: "운동 전문가로서 질문에 답해주세요." },
+            { role: "user", content: userInput },
+          ],
         },
         {
-          headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      // ✅ 응답 데이터를 명확한 타입으로 처리
       const botReply = response.data.choices[0].message.content;
       setMessages((prev) => [...prev, { id: Date.now().toString(), text: botReply, sender: "bot" }]);
     } catch (error) {
@@ -89,7 +87,6 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
             )}
           />
 
-          {/* 입력창 및 전송 버튼 */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -102,7 +99,6 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
             </TouchableOpacity>
           </View>
 
-          {/* 닫기 버튼 */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>닫기</Text>
           </TouchableOpacity>
@@ -112,19 +108,76 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
   );
 }
 
-// ✅ 스타일 정의
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  chatContainer: { width: "90%", backgroundColor: "#fff", padding: 20, borderRadius: 10, elevation: 10 },
-  title: { fontSize: 20, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  inputContainer: { flexDirection: "row", marginTop: 10 },
-  input: { flex: 1, borderWidth: 1, borderColor: "#ddd", borderRadius: 5, padding: 10 },
-  sendButton: { marginLeft: 10, padding: 10, backgroundColor: "#007AFF", borderRadius: 5 },
-  sendButtonText: { color: "#fff", fontSize: 16 },
-  closeButton: { marginTop: 10, alignSelf: "center" },
-  closeButtonText: { color: "red", fontSize: 16 },
-  messageBubble: { padding: 10, borderRadius: 10, marginVertical: 5, maxWidth: "80%" },
-  userBubble: { alignSelf: "flex-end", backgroundColor: "#007AFF" },
-  botBubble: { alignSelf: "flex-start", backgroundColor: "#ddd" },
-  messageText: { color: "#fff", fontSize: 16 },
+  overlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  chatContainer: {
+    width: "90%",
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
+    padding: 20,
+    borderRadius: 10,
+    elevation: 10,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    fontFamily: "GmarketSans",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 5,
+    padding: 10,
+    fontFamily: "GmarketSans",
+  },
+  sendButton: {
+    marginLeft: 10,
+    padding: 10,
+    backgroundColor: "#007AFF",
+    borderRadius: 5,
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "GmarketSans",
+  },
+  closeButton: {
+    marginTop: 10,
+    alignSelf: "center",
+  },
+  closeButtonText: {
+    color: "red",
+    fontSize: 16,
+    fontFamily: "GmarketSans",
+  },
+  messageBubble: {
+    padding: 10,
+    borderRadius: 10,
+    marginVertical: 5,
+    maxWidth: "80%",
+  },
+  userBubble: {
+    alignSelf: "flex-end",
+    backgroundColor: "#007AFF",
+  },
+  botBubble: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ddd",
+  },
+  messageText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "GmarketSans",
+  },
 });
