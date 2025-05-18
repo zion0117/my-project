@@ -13,6 +13,9 @@ import {
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { BackHandler } from "react-native";
+import { useRouter } from 'expo-router';
 
 const NAVER_CLIENT_ID = "4aVFZccvVJgF7qCpiiDv";
 const NAVER_CLIENT_SECRET = "NUyJwSYKB9";
@@ -24,9 +27,25 @@ interface Article {
 }
 
 export default function NaverHealthNews() {
+  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrappedLinks, setScrappedLinks] = useState<string[]>([]);
+  const navigation = useNavigation();
+
+useFocusEffect(
+  React.useCallback(() => {
+    const onBackPress = () => {
+      router.replace('/'); // 또는 router.push("/") for Expo Router
+      return true; // 기본 뒤로가기 동작 막기
+    };
+
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, [])
+);
 
   useEffect(() => {
     fetchNews();
