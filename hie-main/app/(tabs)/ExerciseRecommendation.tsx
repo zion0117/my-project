@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicato
 import { getAuth } from "firebase/auth";
 import { CustomText as Text } from "../../components/CustomText";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "./firebaseConfig"; // 🔁 경로 확인
+import { db } from "./firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
@@ -71,7 +71,6 @@ export default function ExerciseRecommendation() {
 
       Alert.alert("운동 추천 완료", "추천 결과가 저장되었습니다.");
 
-      // ✅ 추천 운동 정보를 포함해 ARGuide로 이동
       router.push({
         pathname: "/ARGuide",
         params: { recommended: JSON.stringify(recommendations) },
@@ -129,8 +128,18 @@ export default function ExerciseRecommendation() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#fff", alignItems: "center" },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  container: {
+    padding: 20,
+    backgroundColor: "#fff",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -149,9 +158,11 @@ const styles = StyleSheet.create({
   partText: {
     color: "#333",
     fontWeight: "600",
+    fontFamily: "GmarketSansMedium",
   },
   selectedText: {
     color: "#fff",
+    fontFamily: "GmarketSansMedium",
   },
   submitButton: {
     marginTop: 30,
@@ -164,14 +175,33 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
   },
-  recommendationBox: {
-    marginTop: 30,
-    width: "100%",
-    backgroundColor: "#f2f2f2",
-    padding: 20,
-    borderRadius: 12,
-  },
-  recommendTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  exerciseText: { fontSize: 16, marginBottom: 4 },
+recommendationBox: {
+  width: "90%",
+  backgroundColor: "#fff", // ✨ 흰 배경
+  padding: 24,
+  borderRadius: 16,
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 5,
+},
+recommendTitle: {
+  fontSize: 20,
+  fontWeight: "bold",
+  fontFamily: "GmarketSansMedium",
+  marginBottom: 14,
+  color: "#007AFF",
+},
+exerciseText: {
+  fontSize: 16,
+  fontWeight: "600",
+  fontFamily: "GmarketSansMedium",
+  color: "#333",
+  marginBottom: 6,
+},
+
 });

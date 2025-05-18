@@ -27,13 +27,18 @@
 
     #feedback {
       position: absolute;
-      top: 20px;
-      left: 0;
-      width: 100%;
-      font-size: 24px;
+      bottom: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 26px;
       font-weight: bold;
       text-align: center;
       z-index: 2;
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      color: #fff;
+      text-shadow: 2px 2px 5px black;
     }
 
     #startBtn, #endBtn {
@@ -133,6 +138,15 @@
       camera.start();
     }
 
+    function drawConnection(p1, p2, color) {
+      ctx.beginPath();
+      ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+      ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 6;
+      ctx.stroke();
+    }
+
     function onResults(results) {
       if (!isExercising) return;
 
@@ -145,14 +159,22 @@
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
 
-      ctx.fillStyle = "#00FF00";
+      // draw glowing joints
       for (let i = 0; i < landmarks.length; i++) {
         const x = landmarks[i].x * canvas.width;
         const y = landmarks[i].y * canvas.height;
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
+        gradient.addColorStop(0, "#00FF00");
+        gradient.addColorStop(1, "rgba(0,255,0,0)");
+        ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.arc(x, y, 12, 0, 2 * Math.PI);
         ctx.fill();
       }
+
+      // draw connections (shoulder → hip → knee)
+      drawConnection(landmarks[12], landmarks[24], "#00FFFF"); // R shoulder to R hip
+      drawConnection(landmarks[24], landmarks[26], "#FF00FF"); // R hip to R knee
 
       const shoulderY = landmarks[12].y;
       const hipY = landmarks[24].y;
