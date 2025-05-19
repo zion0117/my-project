@@ -1,5 +1,3 @@
-// ModernizedDashboard.tsx
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -7,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { getAuth } from "firebase/auth";
 import {
@@ -19,6 +18,7 @@ import {
 import { db } from "./firebaseConfig";
 import HomeButton from "../../components/HomeButton";
 import * as Font from "expo-font";
+import { useRouter } from 'expo-router';
 
 const getFeedback = (score: number) => {
   if (score >= 90) return "✅ 자세 정렬과 근육 활성도가 매우 우수합니다. 견갑골 안정성과 코어 조절이 잘 유지되었습니다.";
@@ -56,8 +56,14 @@ const Dashboard = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/");
+      return true;
+    });
+
     const loadFonts = async () => {
       await Font.loadAsync({
         GmarketSans: require("../../assets/fonts/GmarketSansTTFMedium.ttf"),
@@ -87,7 +93,6 @@ const Dashboard = () => {
           };
         });
 
-        // score 평균으로 변환
         const averaged = data.map((item) => {
           if (Array.isArray(item.score)) {
             const validScores = item.score.filter((s: any) => typeof s === "number");
@@ -107,6 +112,8 @@ const Dashboard = () => {
 
     loadFonts();
     fetchResults();
+
+    return () => backHandler.remove();
   }, []);
 
   if (!fontsLoaded) return null;

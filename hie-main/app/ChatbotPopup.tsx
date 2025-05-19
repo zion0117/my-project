@@ -1,18 +1,11 @@
-import Constants from "expo-constants";
 import React, { useState } from "react";
-import { View, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert } from "react-native";
+import { View, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert, Dimensions } from "react-native";
 import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import axios from "axios";
 import { CustomText as Text } from "../components/CustomText";
 
 const db = getFirestore();
 const auth = getAuth();
-const OPENAI_API_KEY = Constants.expoConfig?.extra?.openaiApiKey || "";
-
-interface OpenAIResponse {
-  choices: { message: { content: string } }[];
-}
 
 export default function ChatbotPopup({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const [messages, setMessages] = useState<{ id: string; text: string; sender: "user" | "bot" }[]>([]);
@@ -36,53 +29,43 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
 
       setInputText("");
       setLoading(true);
-      generateBotResponse(inputText);
+      handleBotResponse(inputText);
     } catch (error) {
       console.error("메시지 저장 실패:", error);
       Alert.alert("오류 발생", "메시지를 저장할 수 없습니다.");
     }
   };
 
-  const generateBotResponse = async (userInput: string) => {
-    try {
-      const response = await axios.post<OpenAIResponse>(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: "운동 전문가로서 질문에 답해주세요." },
-            { role: "user", content: userInput },
-          ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  const handleBotResponse = async (userInput: string) => {
+    const lowerInput = userInput.toLowerCase();
+    let botReply = "";
 
-      const botReply = response.data.choices[0].message.content;
-      setMessages((prev) => [...prev, { id: Date.now().toString(), text: botReply, sender: "bot" }]);
-    } catch (error) {
-      console.error("OpenAI 응답 실패:", error);
-      setMessages((prev) => [...prev, { id: Date.now().toString(), text: "❌ 오류 발생. 다시 시도해주세요.", sender: "bot" }]);
-    } finally {
-      setLoading(false);
+    if (lowerInput.includes("허리") && lowerInput.includes("아파")) {
+      botReply = `허리 통증이 있을 때 추천되는 운동은 다음과 같습니다:\n\n✅ 고양이-소 자세 (Cat-Cow Stretch)\n✅ 무릎 당기기 (Knee to Chest Stretch)\n✅ 브릿지 운동 (Glute Bridge)\n✅ 누워서 무릎 좌우로 흔들기\n\n또한, 운동 전에는 충분한 스트레칭과, 통증이 심하면 무리하지 않고 휴식을 취하세요.`;
+    } else if (lowerInput.includes("영양제") || lowerInput.includes("음식") || lowerInput.includes("먹을") || lowerInput.includes("보충")) {
+      botReply = `통증이 있거나 운동 후 회복을 돕기 위한 음식/영양제 추천입니다:\n\n🥦 음식: 연어, 고구마, 바나나, 시금치, 삶은 달걀, 아보카도\n💊 영양제: 오메가3, 마그네슘, 비타민 D, 글루코사민\n\n단, 개인 상태에 따라 섭취 전 전문가 상담을 권장합니다.`;
+    } else {
+      botReply = "죄송해요! 데모 모드에서는 '허리가 아파' 또는 '음식/영양제 추천' 관련 질문에만 응답해요.";
     }
+
+    setMessages((prev) => [...prev, { id: Date.now().toString(), text: botReply, sender: "bot" }]);
+    setLoading(false);
   };
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide">
+    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.chatContainer}>
+          <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
+            <Text style={styles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>🏋️ 운동 챗봇</Text>
           <FlatList
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={[styles.messageBubble, item.sender === "user" ? styles.userBubble : styles.botBubble]}>
-                <Text style={styles.messageText}>{item.text}</Text>
+                <Text style={[styles.messageText, item.sender === "bot" && styles.botMessageText]}>{item.text}</Text>
               </View>
             )}
           />
@@ -98,10 +81,6 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
               <Text style={styles.sendButtonText}>{loading ? "⏳" : "📩"}</Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>닫기</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -116,17 +95,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   chatContainer: {
-    width: "90%",
-    backgroundColor: "rgba(255, 255, 255, 0.92)",
-    padding: 20,
-    borderRadius: 10,
+    width: "85%",
+    height: "70%",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: 16,
+    borderRadius: 14,
     elevation: 10,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 8,
     fontFamily: "GmarketSans",
   },
   inputContainer: {
@@ -136,7 +116,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     fontFamily: "GmarketSans",
@@ -152,13 +132,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "GmarketSans",
   },
-  closeButton: {
-    marginTop: 10,
-    alignSelf: "center",
+  closeIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
   closeButtonText: {
-    color: "red",
-    fontSize: 16,
+    color: "#555",
+    fontSize: 20,
     fontFamily: "GmarketSans",
   },
   messageBubble: {
@@ -173,11 +155,14 @@ const styles = StyleSheet.create({
   },
   botBubble: {
     alignSelf: "flex-start",
-    backgroundColor: "#ddd",
+    backgroundColor: "#fff",
   },
   messageText: {
-    color: "#fff",
     fontSize: 16,
     fontFamily: "GmarketSans",
+    color: "#fff",
+  },
+  botMessageText: {
+    color: "#000",
   },
 });

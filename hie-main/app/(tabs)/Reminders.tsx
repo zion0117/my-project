@@ -1,11 +1,21 @@
 // 개발 빌드용 코드
 
-import React, { useState } from "react";
-import { View, Text, Button, Alert, Platform, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Button,
+  Alert,
+  Platform,
+  StyleSheet,
+  BackHandler,
+  FlatList,
+  TextInput,
+} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
 
-// 알림 처리 설정 (알림을 받았을 때 앱에서 어떻게 반응할지)
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -17,28 +27,35 @@ Notifications.setNotificationHandler({
 export default function MedicineReminder() {
   const [time, setTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [takenList, setTakenList] = useState<{ id: number; time: string; name: string }[]>([]);
+  const [medicineName, setMedicineName] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/");
+      return true;
+    });
+    return () => backHandler.remove();
+  }, []);
 
   const handleSetReminder = async () => {
-    // 1️⃣ 알림 권한 요청
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("알림 권한이 필요합니다.");
       return;
     }
 
-    // 2️⃣ 알림 시간 설정
     const now = new Date();
     const scheduledTime = new Date(now);
     scheduledTime.setHours(time.getHours());
     scheduledTime.setMinutes(time.getMinutes());
     scheduledTime.setSeconds(0);
 
-    // 현재 시간보다 이전이면 다음 날로 예약
     if (scheduledTime <= now) {
       scheduledTime.setDate(now.getDate() + 1);
     }
 
-    // 3️⃣ 알림 예약
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "💊 약 복용 시간입니다!",
@@ -49,6 +66,19 @@ export default function MedicineReminder() {
     });
 
     Alert.alert("✅ 알림 예약 완료", `${scheduledTime.toLocaleTimeString()}에 울립니다.`);
+  };
+
+  const handleTakeMedicine = () => {
+    if (!medicineName.trim()) {
+      Alert.alert("복용한 약 이름을 입력해주세요.");
+      return;
+    }
+    const now = new Date();
+    setTakenList((prev) => [
+      { id: Date.now(), time: now.toLocaleTimeString(), name: medicineName.trim() },
+      ...prev,
+    ]);
+    setMedicineName("");
   };
 
   return (
@@ -71,6 +101,28 @@ export default function MedicineReminder() {
       )}
 
       <Button title="💊 알림 예약하기" onPress={handleSetReminder} />
+
+      <View style={{ marginTop: 30 }}>
+        <TextInput
+          style={styles.input}
+          placeholder="복용한 약 이름 입력"
+          value={medicineName}
+          onChangeText={setMedicineName}
+        />
+        <Button title="✅ 약 먹었어요!" onPress={handleTakeMedicine} />
+        <Text style={styles.historyTitle}>📋 복용 기록</Text>
+        <FlatList
+          data={takenList}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.recordItem}>
+              <Text style={styles.recordText}>복용 시간: {item.time}</Text>
+              <Text style={styles.recordText}>복용 약: {item.name}</Text>
+            </View>
+          )}
+          ListEmptyComponent={<Text style={styles.emptyText}>기록 없음</Text>}
+        />
+      </View>
     </View>
   );
 }
@@ -79,65 +131,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "#fff" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
   timeText: { fontSize: 18, textAlign: "center", marginVertical: 10 },
+  historyTitle: { fontSize: 20, fontWeight: "600", marginTop: 30, marginBottom: 10, textAlign: "center" },
+  recordItem: { padding: 10, backgroundColor: "#f0f0f0", marginBottom: 8, borderRadius: 8 },
+  recordText: { fontSize: 16 },
+  emptyText: { fontSize: 16, color: "#888", textAlign: "center", marginTop: 10 },
+  input: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
 });
-
-//expo go test ver
-/*
-import React, { useState } from "react";
-import { View, Text, Button, Alert, StyleSheet } from "react-native";
-import * as Notifications from "expo-notifications";
-
-export default function MedicineReminderLite() {
-  const [hour, setHour] = useState(9);
-  const [minute, setMinute] = useState(0);
-
-  const scheduleTestNotification = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("알림 권한 필요");
-      return;
-    }
-
-    const now = new Date();
-    const alarmTime = new Date();
-    alarmTime.setHours(hour);
-    alarmTime.setMinutes(minute);
-    alarmTime.setSeconds(0);
-
-    if (alarmTime <= now) {
-      alarmTime.setDate(now.getDate() + 1);
-    }
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "💊 약 복용 시간입니다!",
-        body: "설정한 시간에 울리는지 확인해보세요.",
-        sound: "default",
-      },
-      trigger: alarmTime,
-    });
-
-    Alert.alert("✅ 예약됨", `${alarmTime.toLocaleTimeString()}에 알림 예정`);
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>임시 알림 테스트 (Expo Go 가능)</Text>
-      <Text style={styles.time}>{`선택 시간: ${hour}시 ${minute}분`}</Text>
-
-      <Button title="시간 +1시간" onPress={() => setHour((prev) => (prev + 1) % 24)} />
-      <Button title="분 +10분" onPress={() => setMinute((prev) => (prev + 10) % 60)} />
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="알림 예약하기" onPress={scheduleTestNotification} />
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
-  title: { fontSize: 20, textAlign: "center", marginBottom: 20 },
-  time: { fontSize: 18, textAlign: "center", marginBottom: 10 },
-});
-*/
