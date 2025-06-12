@@ -103,23 +103,83 @@ demo 영상 : https://drive.google.com/file/d/1-VenCzWuL7itRpZof914zgl9UlQ43Xv-/
 ### 서버 연결
 - **공공기관 운동 프로그램 연동**: 운동 프로그램과의 연동 예정.
 
-## 설치 방법
+## 설치 및 실행 방법 (Reproducible Setup)
 
-1. 저장소 클론
-    ```bash
-    git clone https://github.com/kimmini-health/community.git
-    cd community
-    ```
+### 1. 프로젝트 클론
 
-2. 의존성 설치
-    ```bash
-    npm install
-    ```
+```bash
+git clone https://github.com/your-team/senior-health-app.git
+cd senior-health-app
+```
 
-3. 서버 실행
-    ```bash
-    npm start
-    ```
+### 2. 의존성 설치
 
+```bash
+npm install
+```
+
+### 3. 환경 변수 설정
+
+`.env` 파일을 루트에 생성하고 다음 값을 넣어주세요:
+
+```env
+GOOGLE_PLACES_API_KEY=your_key
+NAVER_CLIENT_ID=your_client_id
+NAVER_CLIENT_SECRET=your_client_secret
+FIREBASE_API_KEY=...
+...
+```
+
+> `.env.example` 파일 참고
+
+### 4. 개발 서버 실행
+
+```bash
+npx expo start
+```
+
+> Android/iOS 시뮬레이터 또는 실제 디바이스에서 테스트 가능
+
+---
+
+##  EAS 빌드
+
+> 이 앱은 Custom Workflow를 사용합니다. 로컬 또는 서버에서 EAS 빌드 가능.
+
+### Android APK 빌드 (개발용)
+
+```bash
+eas build --profile development --platform android
+```
+
+### AAB 빌드 (Play 스토어 제출용)
+
+```bash
+eas build --profile production --platform android
+```
+
+---
+##  테스트된 환경
+
+| 항목 | 버전 |
+|------|------|
+| Node | 18.x |
+| Expo SDK | 52 |
+| Android Studio | Electric Eel 이상 |
+| Firebase | Realtime Database + Auth |
+| Expo CLI | 최신 안정 버전 (`npx expo --version`) |
+
+---
+
+##  사용된 주요 패키지
+
+- expo-notifications
+- react-native-voice
+- expo-location
+- axios
+- @react-native-community/datetimepicker
+- firebase
+
+---
 
 
