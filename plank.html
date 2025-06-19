@@ -45,7 +45,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 24px 0 0 0;
+      padding: 32px 0 0 0;
       background: rgba(20, 24, 31, 0.92);
       box-shadow: 0 -4px 32px 0 rgba(0,0,0,0.18);
       border-top-left-radius: 32px;
@@ -57,49 +57,49 @@
     }
 
     #feedback {
-      font-size: 24px;
+      font-size: 32px;
       font-weight: 900;
       background: linear-gradient(90deg, #232526 60%, #007AFF 100%);
-      padding: 12px 28px;
+      padding: 18px 38px;
       border-radius: 18px;
       color: #fff;
       text-shadow: 1px 1px 8px #007AFF99, 0 2px 8px #000;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       box-shadow: 0 2px 12px 0 #007AFF33;
       letter-spacing: 0.5px;
-      min-width: 260px;
+      min-width: 320px;
       text-align: center;
       transition: background 0.3s;
     }
 
     #scoreDisplay {
-      font-size: 22px;
+      font-size: 28px;
       font-weight: 700;
       color: #FFD700;
       text-shadow: 1px 1px 8px #000, 0 2px 8px #FFD70055;
-      margin-bottom: 8px;
+      margin-bottom: 14px;
       letter-spacing: 1px;
     }
 
     #buttonGroup {
       display: flex;
-      gap: 18px;
-      margin-bottom: 10px;
+      gap: 24px;
+      margin-bottom: 14px;
     }
 
     #startBtn, #endBtn {
       background: linear-gradient(90deg, #007AFF 60%, #00c6ff 100%);
       color: white;
       border: none;
-      padding: 14px 38px;
-      font-size: 20px;
+      padding: 20px 54px;
+      font-size: 28px;
       font-weight: 900;
-      border-radius: 14px;
+      border-radius: 16px;
       cursor: pointer;
       box-shadow: 0 4px 16px 0 #007AFF33;
       transition: background 0.2s, transform 0.1s;
       outline: none;
-      margin: 0 4px;
+      margin: 0 6px;
     }
 
     #startBtn:active, #endBtn:active {
@@ -117,18 +117,18 @@
       display: none;
       flex-direction: row;
       justify-content: center;
-      gap: 24px;
-      margin-top: 12px;
+      gap: 32px;
+      margin-top: 16px;
     }
 
     #continueBtn, #dashboardBtn {
       background: linear-gradient(90deg, #34C759 60%, #00ff99 100%);
       color: white;
       border: none;
-      padding: 14px 38px;
-      font-size: 20px;
+      padding: 20px 54px;
+      font-size: 28px;
       font-weight: 900;
-      border-radius: 14px;
+      border-radius: 16px;
       cursor: pointer;
       box-shadow: 0 4px 16px 0 #34C75933;
       transition: background 0.2s, transform 0.1s;
@@ -153,23 +153,23 @@
       #uiWrapper {
         border-top-left-radius: 18px;
         border-top-right-radius: 18px;
-        padding: 12px 0 0 0;
+        padding: 16px 0 0 0;
       }
       #feedback {
-        font-size: 18px;
+        font-size: 20px;
         min-width: 180px;
-        padding: 8px 10px;
+        padding: 10px 12px;
       }
       #scoreDisplay {
-        font-size: 16px;
+        font-size: 18px;
       }
       #startBtn, #endBtn, #continueBtn, #dashboardBtn {
-        font-size: 16px;
-        padding: 10px 18px;
-        border-radius: 8px;
+        font-size: 18px;
+        padding: 12px 20px;
+        border-radius: 10px;
       }
       #afterButtons {
-        gap: 10px;
+        gap: 12px;
       }
     }
   </style>
@@ -238,7 +238,7 @@
       ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
       ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
       ctx.strokeStyle = color;
-      ctx.lineWidth = 6;
+      ctx.lineWidth: 6;
       ctx.stroke();
     }
 
