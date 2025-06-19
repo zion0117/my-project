@@ -38,7 +38,7 @@ demo 영상 : https://drive.google.com/file/d/1-VenCzWuL7itRpZof914zgl9UlQ43Xv-/
 
 ```bash
 git clone https://github.com/zion0117/my-project.git
-cd my-project
+cd C:\Users\user\my-project\hie-main
 ```
 
 ### 2. 의존성 설치
