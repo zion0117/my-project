@@ -96,12 +96,6 @@ eas build --profile production --platform android
 
 ---
 
-## 테스트 계정
-- id: test@test.com
-  pw: 123456
-  
----
-
 ## Description of Data
 - 이 프로젝트는 Firebase Firestore를 실시간 데이터베이스로 사용합니다.
 - 별도의 샘플 데이터 파일(.csv, .json 등)은 필요하지 않습니다.
