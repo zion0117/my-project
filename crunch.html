@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>크런치 자세 교정</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <style>
+    body { margin:0; background:#181C2B; color:#fff; }
+    #cameraWrapper { width:100vw; height:70vh; position:relative; }
+    video,canvas { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+    #uiWrapper { width:100vw; min-height:30vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#23253a; }
+    #feedback { font-size:24px; font-weight:bold; margin:18px 0 8px 0; }
+    #scoreDisplay { font-size:20px; color:#FFD700; margin-bottom:10px; }
+    #startBtn, #endBtn { font-size:20px; padding:12px 32px; border-radius:14px; border:none; margin:8px; }
+    #startBtn { background:#007AFF; color:#fff; }
+    #endBtn { background:#FF3B30; color:#fff; display:none; }
+  </style>
+</head>
+<body>
+  <div id="cameraWrapper">
+    <video id="input_video" playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+  <div id="uiWrapper">
+    <div id="feedback">[크런치 자세 분석 대기 중]</div>
+    <div id="scoreDisplay">점수: 0점</div>
+    <button id="startBtn">운동 시작</button>
+    <button id="endBtn">운동 종료</button>
+  </div>
+  <script>
+    let correctCount = 0, frameCount = 0, repCount = 0, isExercising = false, startTime = null;
+    const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('scoreDisplay');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('input_video');
+    const pose = new Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`,
+    });
+    pose.setOptions({ modelComplexity:1, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5 });
+    pose.onResults(onResults);
+    let camera = null;
+    function startCamera() {
+      camera = new Camera(videoElement, {
+        onFrame: async () => { await pose.send({ image: videoElement }); },
+        width: window.innerWidth,
+        height: window.innerHeight * 0.7,
+      });
+      camera.start();
+    }
+    function onResults(results) {
+      if (!isExercising) return;
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+      const landmarks = results.poseLandmarks;
+      if (!landmarks) return;
+      // 크런치 분석: 어깨-엉덩이 y좌표 차이
+      const shoulderY = landmarks[12].y;
+      const hipY = landmarks[24].y;
+      const diff = Math.abs(shoulderY - hipY);
+      const score = Math.max(0, 100 - diff * 1000);
+      scoreEl.innerText = `점수: ${Math.round(score)}점`;
+      if (diff < 0.13) {
+        correctCount++; frameCount++;
+        if (frameCount % 30 === 0) repCount++;
+        feedbackEl.innerText = `✅ 크런치 성공! (${repCount}회)`;
+      } else {
+        feedbackEl.innerText = "📣 상체를 더 들어주세요!";
+        frameCount = 0;
+      }
+    }
+    document.getElementById("startBtn").onclick = () => {
+      startCamera();
+      isExercising = true;
+      startTime = new Date();
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("endBtn").style.display = "inline-block";
+      feedbackEl.innerText = "📷 자세 인식 시작!";
+    };
+    document.getElementById("endBtn").onclick = () => {
+      isExercising = false;
+      const endTime = new Date();
+      const duration = Math.round((endTime - startTime) / 1000);
+      const result = {
+        exercise: "크런치",
+        score: Math.min(100, correctCount),
+        reps: repCount,
+        duration,
+        timestamp: endTime.toISOString(),
+      };
+      if (window.ReactNativeWebView?.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(result));
+      }
+      document.getElementById("endBtn").style.display = "none";
+      feedbackEl.innerText = "";
+      scoreEl.innerText = "점수: 0점";
+    };
+  </script>
+</body>
+</html>

@@ -1,53 +1,92 @@
 import React from "react";
 import {
   View,
+  Alert,
   StyleSheet,
   SafeAreaView,
-  Dimensions,
-  Alert,
   Platform,
   StatusBar,
+  Dimensions,
   ActivityIndicator,
-  Text,
 } from "react-native";
 import { WebView } from "react-native-webview";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig";
+
 const { height, width } = Dimensions.get("window");
 
-export default function Plank() {
+// 운동명 → 외부 HTML URL 매핑
+const exerciseToUrlMap = {
+  "플랭크": "https://posecorrector.netlify.app/plank.html",
+  "스쿼트": "https://posecorrector.netlify.app/squat.html",
+  "숄더 프레스": "https://posecorrector.netlify.app/shoulder-press.html",
+  "컬": "https://posecorrector.netlify.app/curl.html",
+  "랫풀다운": "https://posecorrector.netlify.app/latpulldown.html",
+  "크런치": "https://posecorrector.netlify.app/crunch.html",
+  "힙 브릿지": "https://posecorrector.netlify.app/hip-bridge.html",
+  "카프레이즈": "https://posecorrector.netlify.app/calf-raise.html",
+};
+
+export default function ARGuide2() {
   const router = useRouter();
+  const { exercise } = useLocalSearchParams();
+
+  // 운동명에 맞는 URL, 없으면 플랭크로 fallback
+  const webViewUrl = exerciseToUrlMap[exercise] || exerciseToUrlMap["플랭크"];
+
+  // WebView에서 결과/이동 메시지 수신
   const handleMessage = async (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+
       if (data.type === "navigate" && data.target === "Dashboard") {
         router.push("/Dashboard");
         return;
       }
+
       const user = getAuth().currentUser;
       if (!user) {
         Alert.alert("저장 실패", "로그인이 필요합니다.");
         return;
       }
+
       const { exercise, score, reps, duration, timestamp } = data;
       const parsedTimestamp = new Date(timestamp);
-      if (!timestamp || isNaN(parsedTimestamp.getTime())) return;
+      if (!timestamp || isNaN(parsedTimestamp.getTime())) {
+        console.warn("❌ 유효하지 않은 timestamp:", timestamp);
+        return;
+      }
+
       await addDoc(collection(db, "exercise_results"), {
-        userId: user.uid, exercise, score, reps, duration, timestamp: parsedTimestamp, savedAt: Timestamp.now(),
+        userId: user.uid,
+        exercise,
+        score,
+        reps,
+        duration,
+        timestamp: parsedTimestamp,
+        savedAt: Timestamp.now(),
       });
-    } catch (err) { console.error("🔥 저장 실패:", err); }
+
+      console.log("✅ 운동 결과 저장 성공:", {
+        exercise,
+        score,
+        reps,
+        duration,
+        timestamp,
+      });
+    } catch (err) {
+      console.error("🔥 저장 실패:", err);
+    }
   };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>플랭크 AR 가이드</Text>
-      </View>
       <View style={styles.centerWrapper}>
         <View style={styles.webviewContainer}>
           <WebView
-            source={{ uri: "https://posecorrector.netlify.app/plank.html" }}
+            source={{ uri: webViewUrl }}
             onMessage={handleMessage}
             javaScriptEnabled
             originWhitelist={["*"]}
@@ -55,7 +94,7 @@ export default function Plank() {
             startInLoadingState
             renderLoading={() => (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#6C5CE7" />
+                <ActivityIndicator size="large" color="#007AFF" />
                 <Text style={styles.loadingText}>AR 가이드를 불러오는 중...</Text>
               </View>
             )}
@@ -65,29 +104,12 @@ export default function Plank() {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#181C2B",
+    backgroundColor: "#fff",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  header: {
-    paddingTop: 30,
-    paddingBottom: 18,
-    alignItems: "center",
-    backgroundColor: "#23253a",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  headerTitle: {
-    fontSize: 22,
-    color: "#fff",
-    fontWeight: "bold",
-    letterSpacing: 0.5,
   },
   centerWrapper: {
     flex: 1,
@@ -95,16 +117,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   webviewContainer: {
-    width: width * 0.93,
-    height: height * 0.68,
-    borderRadius: 22,
+    width: width * 0.9,
+    height: height * 0.6,
+    borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#23253a",
-    elevation: 8,
-    shadowColor: "#6C5CE7",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
+    backgroundColor: "#f0f0f0",
+    elevation: 4,
   },
   webview: {
     flex: 1,
@@ -113,13 +131,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#23253a",
+    backgroundColor: "#f0f0f0",
   },
   loadingText: {
-    marginTop: 18,
-    color: "#b7b9d1",
+    marginTop: 14,
+    color: "#888",
     fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.2,
   },
 });

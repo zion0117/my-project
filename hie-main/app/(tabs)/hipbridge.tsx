@@ -17,7 +17,7 @@ import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 const { height, width } = Dimensions.get("window");
 
-export default function Plank() {
+export default function HipBridge() {
   const router = useRouter();
   const handleMessage = async (event) => {
     try {
@@ -42,12 +42,12 @@ export default function Plank() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>플랭크 AR 가이드</Text>
+        <Text style={styles.headerTitle}>힙 브릿지 AR 가이드</Text>
       </View>
       <View style={styles.centerWrapper}>
         <View style={styles.webviewContainer}>
           <WebView
-            source={{ uri: "https://posecorrector.netlify.app/plank.html" }}
+            source={{ uri: "https://posecorrector.netlify.app/hip-bridge.html" }}
             onMessage={handleMessage}
             javaScriptEnabled
             originWhitelist={["*"]}
