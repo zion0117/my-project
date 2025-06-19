@@ -17,7 +17,7 @@ import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 const { height, width } = Dimensions.get("window");
 
-export default function Crunch() {
+export default function Squat() {
   const router = useRouter();
   const handleMessage = async (event) => {
     try {
@@ -42,7 +42,7 @@ export default function Crunch() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>크런치 AR 가이드</Text>
+        <Text style={styles.headerTitle}>스쿼드 가이드</Text>
       </View>
       <View style={styles.centerWrapper}>
         <View style={styles.webviewContainer}>
