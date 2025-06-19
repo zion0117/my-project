@@ -5,38 +5,68 @@
   <title>스쿼트 자세 교정</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700;900&display=swap" rel="stylesheet">
   <style>
-    /* (플랭크와 동일한 스타일) */
+    body {
+      margin: 0;
+      font-family: 'Gmarket Sans', sans-serif;
+      background: #000;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #feedback {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 2;
+    }
+
+    #startBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #007AFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      z-index: 3;
+    }
   </style>
 </head>
 <body>
-  <div id="cameraWrapper">
-    <video id="input_video" playsinline></video>
-    <canvas id="canvas"></canvas>
-  </div>
-  <div id="uiWrapper">
-    <div id="feedback">[스쿼트 자세 분석 대기 중]</div>
-    <div id="scoreDisplay">점수: 0점</div>
-    <div id="buttonGroup">
-      <button id="startBtn">운동 시작</button>
-      <button id="endBtn">운동 종료</button>
-    </div>
-    <div id="afterButtons">
-      <button id="continueBtn">운동 계속하기</button>
-      <button id="dashboardBtn">운동 결과 확인</button>
-    </div>
-  </div>
+  <div id="feedback">[스쿼트 자세 분석 대기 중]</div>
+  <button id="startBtn">운동 시작</button>
+  <video id="input_video" playsinline></video>
+  <canvas id="canvas"></canvas>
+
   <script>
-    let correctCount = 0, frameCount = 0, repCount = 0, isExercising = false, startTime = null;
+    let correctCount = 0;
+
     const feedbackEl = document.getElementById('feedback');
-    const scoreEl = document.getElementById('scoreDisplay');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const videoElement = document.getElementById('input_video');
+
     const pose = new Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`,
     });
+
     pose.setOptions({
       modelComplexity: 1,
       smoothLandmarks: true,
@@ -44,99 +74,69 @@
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
     });
+
     pose.onResults(onResults);
+
     let camera = null;
+
     function startCamera() {
       camera = new Camera(videoElement, {
-        onFrame: async () => { await pose.send({ image: videoElement }); },
+        onFrame: async () => {
+          await pose.send({ image: videoElement });
+        },
         width: window.innerWidth,
-        height: window.innerHeight * 0.72,
+        height: window.innerHeight,
       });
       camera.start();
     }
-    function drawConnection(p1, p2, color) {
-      ctx.beginPath();
-      ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
-      ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 6;
-      ctx.stroke();
+
+    function getAngle(a, b, c) {
+      const ab = { x: b.x - a.x, y: b.y - a.y };
+      const cb = { x: b.x - c.x, y: b.y - c.y };
+      const dot = ab.x * cb.x + ab.y * cb.y;
+      const magAB = Math.sqrt(ab.x ** 2 + ab.y ** 2);
+      const magCB = Math.sqrt(cb.x ** 2 + cb.y ** 2);
+      const angle = Math.acos(dot / (magAB * magCB));
+      return (angle * 180) / Math.PI;
     }
-    function getSquatScore(landmarks) {
-      const hip = landmarks[24];
-      const knee = landmarks[26];
-      const ankle = landmarks[28];
-      const angle = Math.abs(
-        Math.atan2(ankle.y - knee.y, ankle.x - knee.x) -
-        Math.atan2(hip.y - knee.y, hip.x - knee.x)
-      ) * 180 / Math.PI;
-      const score = Math.max(0, Math.min(100, (180 - angle) * 1.8));
-      return { angle, score };
-    }
+
     function onResults(results) {
-      if (!isExercising) return;
-      canvas.width = canvas.clientWidth;
-      canvas.height = canvas.clientHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
-      drawConnection(landmarks[24], landmarks[26], "#00FFFF");
-      drawConnection(landmarks[26], landmarks[28], "#FF00FF");
-      const { angle, score } = getSquatScore(landmarks);
-      scoreEl.innerText = `점수: ${Math.round(score)}점`;
-      if (angle > 160) {
-        correctCount++; frameCount++;
-        if (frameCount % 30 === 0) repCount++;
-        feedbackEl.innerText = `✅ 완벽한 스쿼트! (${repCount}회)`;
-        feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #34C759 100%)";
-      } else if (angle < 90) {
-        feedbackEl.innerText = "📣 더 깊게 앉아주세요!";
-        feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #FF3B30 100%)";
-        frameCount = 0;
+
+      const angle = getAngle(landmarks[24], landmarks[26], landmarks[28]); // Hip-Knee-Ankle
+
+      if (angle < 100) {
+        feedbackEl.innerText = "✅ 좋은 스쿼트 자세예요!";
+        correctCount++;
       } else {
-        feedbackEl.innerText = "📣 무릎이 발끝보다 앞으로 나가지 않게!";
-        feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #FF3B30 100%)";
-        frameCount = 0;
+        feedbackEl.innerText = "📣 무릎을 더 굽혀보세요!";
       }
+
+      // 🔍 디버깅용 각도 표시
+      ctx.fillStyle = "yellow";
+      ctx.font = "20px Gmarket Sans";
+      ctx.fillText(`무릎 각도: ${angle.toFixed(1)}°`, 10, 30);
     }
+
     document.getElementById("startBtn").onclick = () => {
       startCamera();
-      isExercising = true;
-      startTime = new Date();
-      document.getElementById("startBtn").style.display = "none";
-      document.getElementById("endBtn").style.display = "inline-block";
       feedbackEl.innerText = "📷 자세 인식 시작!";
-      feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #007AFF 100%)";
     };
-    document.getElementById("endBtn").onclick = () => {
-      isExercising = false;
-      const endTime = new Date();
-      const duration = Math.round((endTime - startTime) / 1000);
+
+    window.onbeforeunload = () => {
       const result = {
         exercise: "스쿼트",
         score: Math.min(100, correctCount),
-        reps: repCount,
-        duration,
-        timestamp: endTime.toISOString(),
-        savedAt: endTime.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+        timestamp: new Date().toISOString()
       };
-      if (window.ReactNativeWebView?.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(result));
-      }
-      document.getElementById("endBtn").style.display = "none";
-      document.getElementById("afterButtons").style.display = "flex";
-      feedbackEl.innerText = "";
-      scoreEl.innerText = "점수: 0점";
-    };
-    document.getElementById("continueBtn").onclick = () => { location.reload(); };
-    document.getElementById("dashboardBtn").onclick = () => {
-      if (window.ReactNativeWebView?.postMessage) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: "navigate",
-          target: "Dashboard"
-        }));
-      }
+      window.ReactNativeWebView?.postMessage(JSON.stringify(result));
     };
   </script>
 </body>
