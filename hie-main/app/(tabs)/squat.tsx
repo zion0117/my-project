@@ -42,7 +42,7 @@ export default function Squat() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>스쿼드 가이드</Text>
+        <Text style={styles.headerTitle}>스쿼트 가이드</Text>
       </View>
       <View style={styles.centerWrapper}>
         <View style={styles.webviewContainer}>
