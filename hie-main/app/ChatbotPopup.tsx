@@ -1,23 +1,50 @@
-import React, { useState } from "react";
-import { View, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert, Dimensions } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Modal, TouchableOpacity, TextInput, StyleSheet, FlatList, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { getFirestore, collection, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { CustomText as Text } from "../components/CustomText";
+import { Ionicons } from "@expo/vector-icons";
+import OpenAI from 'openai';
 
 const db = getFirestore();
 const auth = getAuth();
 
-export default function ChatbotPopup({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const [messages, setMessages] = useState<{ id: string; text: string; sender: "user" | "bot" }[]>([]);
+// OpenAI 클라이언트 초기화
+const openai = new OpenAI({
+  apiKey: 'YOUR_OPENAI_API_KEY', // 실제 API 키로 교체 필요
+  dangerouslyAllowBrowser: true // React Native 환경에서 허용
+});
+
+export default function ChatbotPopup({ visible, onClose }) {
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const flatListRef = useRef(null);
+
+  // 메시지 추가 시 스크롤 자동 이동
+  useEffect(() => {
+    if (messages.length > 0 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef.current.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
-    const userMessage = { id: Date.now().toString(), text: inputText, sender: "user" };
-    setMessages((prev) => [...prev, userMessage]);
-
+    
+    // 사용자 메시지 추가
+    const userMessage = { 
+      id: Date.now().toString(), 
+      text: inputText, 
+      sender: "user" 
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setInputText("");
+    
     try {
+      // Firebase에 메시지 저장
       const user = auth.currentUser;
       if (!user) throw new Error("로그인이 필요합니다.");
 
@@ -27,8 +54,9 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
         timestamp: Timestamp.now(),
       });
 
-      setInputText("");
+      // 챗봇 응답 처리
       setLoading(true);
+      setIsTyping(true);
       handleBotResponse(inputText);
     } catch (error) {
       console.error("메시지 저장 실패:", error);
@@ -36,53 +64,141 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
     }
   };
 
-  const handleBotResponse = async (userInput: string) => {
-    const lowerInput = userInput.toLowerCase();
-    let botReply = "";
+  const handleBotResponse = async (userInput) => {
+    try {
+      // OpenAI API 호출
+      const stream = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { 
+            role: 'system', 
+            content: `당신은 전문 운동 트레이너이자 영양사입니다. 
+                      사용자의 운동 관련 질문에 전문적인 조언을 제공해주세요. 
+                      답변은 한국어로 작성해주세요.` 
+          },
+          { role: 'user', content: userInput }
+        ],
+        stream: true,
+        max_tokens: 500,
+        temperature: 0.7,
+      });
 
-    if (lowerInput.includes("허리") && lowerInput.includes("아파")) {
-      botReply = `허리 통증이 있을 때 추천되는 운동은 다음과 같습니다:\n\n✅ 고양이-소 자세 (Cat-Cow Stretch)\n✅ 무릎 당기기 (Knee to Chest Stretch)\n✅ 브릿지 운동 (Glute Bridge)\n✅ 누워서 무릎 좌우로 흔들기\n\n또한, 운동 전에는 충분한 스트레칭과, 통증이 심하면 무리하지 않고 휴식을 취하세요.`;
-    } else if (lowerInput.includes("영양제") || lowerInput.includes("음식") || lowerInput.includes("먹을") || lowerInput.includes("보충")) {
-      botReply = `통증이 있거나 운동 후 회복을 돕기 위한 음식/영양제 추천입니다:\n\n🥦 음식: 연어, 고구마, 바나나, 시금치, 삶은 달걀, 아보카도\n💊 영양제: 오메가3, 마그네슘, 비타민 D, 글루코사민\n\n단, 개인 상태에 따라 섭취 전 전문가 상담을 권장합니다.`;
-    } else {
-      botReply = "죄송해요! 데모 모드에서는 '허리가 아파' 또는 '음식/영양제 추천' 관련 질문에만 응답해요.";
+      // 챗봇 메시지 초기화
+      const botMessageId = Date.now().toString() + '-bot';
+      setMessages(prev => [...prev, { 
+        id: botMessageId, 
+        text: "", 
+        sender: "bot" 
+      }]);
+
+      // 스트리밍 응답 처리
+      let fullResponse = '';
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        fullResponse += content;
+        
+        // 메시지 실시간 업데이트
+        setMessages(prev => prev.map(msg => 
+          msg.id === botMessageId ? { ...msg, text: fullResponse } : msg
+        ));
+      }
+    } catch (error) {
+      console.error('OpenAI API 오류:', error);
+      setMessages(prev => [...prev, { 
+        id: Date.now().toString(), 
+        text: "죄송합니다. 문제가 발생했습니다. 다시 시도해주세요.", 
+        sender: "bot" 
+      }]);
+    } finally {
+      setLoading(false);
+      setIsTyping(false);
     }
-
-    setMessages((prev) => [...prev, { id: Date.now().toString(), text: botReply, sender: "bot" }]);
-    setLoading(false);
   };
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <View style={styles.chatContainer}>
+          {/* 닫기 버튼 */}
           <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
-            <Text style={styles.closeButtonText}>✕</Text>
+            <Ionicons name="close" size={26} color="#bbb" />
           </TouchableOpacity>
+          
+          {/* 타이틀 */}
           <Text style={styles.title}>🏋️ 운동 챗봇</Text>
+          
+          {/* 메시지 리스트 */}
           <FlatList
+            ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View style={[styles.messageBubble, item.sender === "user" ? styles.userBubble : styles.botBubble]}>
-                <Text style={[styles.messageText, item.sender === "bot" && styles.botMessageText]}>{item.text}</Text>
+              <View
+                style={[
+                  styles.messageRow,
+                  item.sender === "user" ? styles.rowRight : styles.rowLeft,
+                ]}
+              >
+                {item.sender === "bot" && (
+                  <Ionicons name="chatbubble-ellipses" size={22} color="#007AFF" style={{ marginRight: 6 }} />
+                )}
+                <View
+                  style={[
+                    styles.messageBubble,
+                    item.sender === "user" ? styles.userBubble : styles.botBubble,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.messageText,
+                      item.sender === "bot" && styles.botMessageText,
+                    ]}
+                  >
+                    {item.text}
+                  </Text>
+                </View>
+                {item.sender === "user" && (
+                  <Ionicons name="person-circle" size={22} color="#007AFF" style={{ marginLeft: 6 }} />
+                )}
               </View>
             )}
+            contentContainerStyle={{ paddingVertical: 8 }}
           />
-
+          
+          {/* 입력창 및 상태 표시 */}
           <View style={styles.inputContainer}>
+            {isTyping && (
+              <View style={styles.typingIndicator}>
+                <Text style={styles.typingText}>챗봇이 답변을 작성 중입니다...</Text>
+              </View>
+            )}
+            
             <TextInput
               style={styles.input}
               placeholder="운동 관련 질문을 입력하세요..."
               value={inputText}
               onChangeText={setInputText}
+              placeholderTextColor="#bbb"
+              editable={!loading}
+              returnKeyType="send"
+              onSubmitEditing={sendMessage}
+              multiline
             />
-            <TouchableOpacity style={styles.sendButton} onPress={sendMessage} disabled={loading}>
-              <Text style={styles.sendButtonText}>{loading ? "⏳" : "📩"}</Text>
+            
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={sendMessage}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={loading ? "time-outline" : "send"} size={22} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -90,79 +206,123 @@ export default function ChatbotPopup({ visible, onClose }: { visible: boolean; o
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.33)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
   },
   chatContainer: {
-    width: "85%",
+    width: "88%",
     height: "70%",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    padding: 16,
-    borderRadius: 14,
+    backgroundColor: "#F6F8FB",
+    padding: 0,
+    borderRadius: 22,
     elevation: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-    fontFamily: "GmarketSans",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    fontFamily: "GmarketSans",
-  },
-  sendButton: {
-    marginLeft: 10,
-    padding: 10,
-    backgroundColor: "#007AFF",
-    borderRadius: 5,
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "GmarketSans",
+    shadowColor: "#007AFF",
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    overflow: "hidden",
   },
   closeIcon: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: 16,
+    right: 16,
     zIndex: 10,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 2,
+    elevation: 2,
   },
-  closeButtonText: {
-    color: "#555",
-    fontSize: 20,
-    fontFamily: "GmarketSans",
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 24,
+    marginBottom: 10,
+    color: "#007AFF",
+    fontFamily: "GmarketSansMedium",
+    letterSpacing: 0.1,
+  },
+  messageRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginHorizontal: 12,
+    marginVertical: 2,
+    maxWidth: "95%",
+  },
+  rowRight: {
+    justifyContent: "flex-end",
+    alignSelf: "flex-end",
+  },
+  rowLeft: {
+    justifyContent: "flex-start",
+    alignSelf: "flex-start",
   },
   messageBubble: {
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    maxWidth: "80%",
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    maxWidth: "82%",
+    minWidth: 32,
   },
   userBubble: {
-    alignSelf: "flex-end",
     backgroundColor: "#007AFF",
+    borderBottomRightRadius: 4,
   },
   botBubble: {
-    alignSelf: "flex-start",
     backgroundColor: "#fff",
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "#E0E6F3",
   },
   messageText: {
-    fontSize: 16,
-    fontFamily: "GmarketSans",
+    fontSize: 15,
+    fontFamily: "GmarketSansMedium",
     color: "#fff",
+    lineHeight: 21,
   },
   botMessageText: {
-    color: "#000",
+    color: "#222",
+  },
+  inputContainer: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: "#e0e6f3",
+  },
+  typingIndicator: {
+    backgroundColor: "#f0f4ff",
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+    alignSelf: "flex-start",
+  },
+  typingText: {
+    fontSize: 12,
+    color: "#666",
+    fontStyle: "italic",
+  },
+  input: {
+    fontSize: 15,
+    fontFamily: "GmarketSansMedium",
+    backgroundColor: "#f3f5fa",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    color: "#222",
+    minHeight: 40,
+    maxHeight: 120,
+  },
+  sendButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 18,
+    backgroundColor: "#007AFF",
+    borderRadius: 22,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
   },
 });
