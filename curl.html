@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>플랭크 자세 교정</title>
+  <title>컬 자세 교정</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700;900&display=swap" rel="stylesheet">
@@ -181,7 +181,7 @@
   </div>
 
   <div id="uiWrapper">
-    <div id="feedback">[플랭크 자세 분석 대기 중]</div>
+    <div id="feedback">[컬 자세 분석 대기 중]</div>
     <div id="scoreDisplay">점수: 0점</div>
     <div id="buttonGroup">
       <button id="startBtn">운동 시작</button>
@@ -314,7 +314,7 @@
       const duration = Math.round((endTime - startTime) / 1000);
 
       const result = {
-        exercise: "플랭크",
+        exercise: "컬",
         score: Math.min(100, correctCount),
         reps: repCount,
         duration,
