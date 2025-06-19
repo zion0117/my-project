@@ -5,16 +5,173 @@
   <title>카프레이즈 자세 교정</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700;900&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; background:#181C2B; color:#fff; }
-    #cameraWrapper { width:100vw; height:70vh; position:relative; }
-    video,canvas { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
-    #uiWrapper { width:100vw; min-height:30vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#23253a; }
-    #feedback { font-size:24px; font-weight:bold; margin:18px 0 8px 0; }
-    #scoreDisplay { font-size:20px; color:#FFD700; margin-bottom:10px; }
-    #startBtn, #endBtn { font-size:20px; padding:12px 32px; border-radius:14px; border:none; margin:8px; }
-    #startBtn { background:#007AFF; color:#fff; }
-    #endBtn { background:#FF3B30; color:#fff; display:none; }
+    body {
+      margin: 0;
+      font-family: 'Gmarket Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #cameraWrapper {
+      width: 100vw;
+      height: 72vh;
+      position: relative;
+      overflow: hidden;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25);
+      background: #000;
+    }
+
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+    }
+
+    #uiWrapper {
+      width: 100vw;
+      min-height: 28vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 0 0;
+      background: rgba(20, 24, 31, 0.92);
+      box-shadow: 0 -4px 32px 0 rgba(0,0,0,0.18);
+      border-top-left-radius: 32px;
+      border-top-right-radius: 32px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      z-index: 2;
+    }
+
+    #feedback {
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #232526 60%, #007AFF 100%);
+      padding: 12px 28px;
+      border-radius: 18px;
+      color: #fff;
+      text-shadow: 1px 1px 8px #007AFF99, 0 2px 8px #000;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 12px 0 #007AFF33;
+      letter-spacing: 0.5px;
+      min-width: 260px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    #scoreDisplay {
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFD700;
+      text-shadow: 1px 1px 8px #000, 0 2px 8px #FFD70055;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    #buttonGroup {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    #startBtn, #endBtn {
+      background: linear-gradient(90deg, #007AFF 60%, #00c6ff 100%);
+      color: white;
+      border: none;
+      padding: 14px 38px;
+      font-size: 20px;
+      font-weight: 900;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px 0 #007AFF33;
+      transition: background 0.2s, transform 0.1s;
+      outline: none;
+      margin: 0 4px;
+    }
+
+    #startBtn:active, #endBtn:active {
+      transform: scale(0.96);
+      background: linear-gradient(90deg, #0051a8 60%, #007AFF 100%);
+    }
+
+    #endBtn {
+      background: linear-gradient(90deg, #FF3B30 60%, #ff7e5f 100%);
+      display: none;
+      box-shadow: 0 4px 16px 0 #FF3B3033;
+    }
+
+    #afterButtons {
+      display: none;
+      flex-direction: row;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    #continueBtn, #dashboardBtn {
+      background: linear-gradient(90deg, #34C759 60%, #00ff99 100%);
+      color: white;
+      border: none;
+      padding: 14px 38px;
+      font-size: 20px;
+      font-weight: 900;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px 0 #34C75933;
+      transition: background 0.2s, transform 0.1s;
+      outline: none;
+    }
+
+    #dashboardBtn {
+      background: linear-gradient(90deg, #007AFF 60%, #00c6ff 100%);
+      box-shadow: 0 4px 16px 0 #007AFF33;
+    }
+
+    #continueBtn:active, #dashboardBtn:active {
+      transform: scale(0.96);
+      filter: brightness(0.9);
+    }
+
+    @media (max-width: 600px) {
+      #cameraWrapper, video, canvas {
+        border-bottom-left-radius: 18px;
+        border-bottom-right-radius: 18px;
+      }
+      #uiWrapper {
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+        padding: 12px 0 0 0;
+      }
+      #feedback {
+        font-size: 18px;
+        min-width: 180px;
+        padding: 8px 10px;
+      }
+      #scoreDisplay {
+        font-size: 16px;
+      }
+      #startBtn, #endBtn, #continueBtn, #dashboardBtn {
+        font-size: 16px;
+        padding: 10px 18px;
+        border-radius: 8px;
+      }
+      #afterButtons {
+        gap: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -22,56 +179,125 @@
     <video id="input_video" playsinline></video>
     <canvas id="canvas"></canvas>
   </div>
+
   <div id="uiWrapper">
-    <div id="feedback">[카프레이즈 자세 분석 대기 중]</div>
+    <div id="feedback">[플랭크 자세 분석 대기 중]</div>
     <div id="scoreDisplay">점수: 0점</div>
-    <button id="startBtn">운동 시작</button>
-    <button id="endBtn">운동 종료</button>
+    <div id="buttonGroup">
+      <button id="startBtn">운동 시작</button>
+      <button id="endBtn">운동 종료</button>
+    </div>
+    <div id="afterButtons">
+      <button id="continueBtn">운동 계속하기</button>
+      <button id="dashboardBtn">운동 결과 확인</button>
+    </div>
   </div>
+
   <script>
-    let correctCount = 0, frameCount = 0, repCount = 0, isExercising = false, startTime = null;
+    let correctCount = 0;
+    let frameCount = 0;
+    let repCount = 0;
+    let isExercising = false;
+    let startTime = null;
+
     const feedbackEl = document.getElementById('feedback');
     const scoreEl = document.getElementById('scoreDisplay');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const videoElement = document.getElementById('input_video');
+
     const pose = new Pose({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`,
     });
-    pose.setOptions({ modelComplexity:1, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5 });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+
     pose.onResults(onResults);
+
     let camera = null;
+
     function startCamera() {
       camera = new Camera(videoElement, {
-        onFrame: async () => { await pose.send({ image: videoElement }); },
+        onFrame: async () => {
+          await pose.send({ image: videoElement });
+        },
         width: window.innerWidth,
-        height: window.innerHeight * 0.7,
+        height: window.innerHeight * 0.72,
       });
       camera.start();
     }
+
+    function drawConnection(p1, p2, color) {
+      ctx.beginPath();
+      ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+      ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 6;
+      ctx.stroke();
+    }
+
+    function getScoreFromAlignment(score) {
+      const maxScore = 0.2;
+      const normalized = Math.max(0, Math.min(1, (maxScore - score) / maxScore));
+      return Math.round(normalized * 100);
+    }
+
     function onResults(results) {
       if (!isExercising) return;
+
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
       const landmarks = results.poseLandmarks;
       if (!landmarks) return;
-      // 카프레이즈 분석 (오른쪽 발목/발뒤꿈치)
-      const ankleY = landmarks[28].y; // 오른쪽 발목
-      const heelY = landmarks[30].y;  // 오른쪽 발뒤꿈치
-      const diff = ankleY - heelY;
-      const score = Math.max(0, Math.min(100, diff * 800));
-      scoreEl.innerText = `점수: ${Math.round(score)}점`;
-      if (diff > 0.05) {
-        correctCount++; frameCount++;
-        if (frameCount % 30 === 0) repCount++;
-        feedbackEl.innerText = `✅ 카프레이즈 성공! (${repCount}회)`;
+
+      // Draw joints
+      for (let i = 0; i < landmarks.length; i++) {
+        const x = landmarks[i].x * canvas.width;
+        const y = landmarks[i].y * canvas.height;
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, 10);
+        gradient.addColorStop(0, "#00FF00");
+        gradient.addColorStop(1, "rgba(0,255,0,0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      drawConnection(landmarks[12], landmarks[24], "#00FFFF"); // shoulder to hip
+      drawConnection(landmarks[24], landmarks[26], "#FF00FF"); // hip to knee
+
+      const shoulderY = landmarks[12].y;
+      const hipY = landmarks[24].y;
+      const kneeY = landmarks[26].y;
+      const alignmentScore = Math.abs(shoulderY - hipY) + Math.abs(hipY - kneeY);
+      const liveScore = getScoreFromAlignment(alignmentScore);
+      scoreEl.innerText = `점수: ${liveScore}점`;
+
+      if (alignmentScore < 0.05) {
+        correctCount++;
+        frameCount++;
+        if (frameCount % 30 === 0) {
+          repCount++;
+        }
+        feedbackEl.innerText = `✅ 좋은 자세예요! (${repCount}초 유지 중)`;
+        feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #34C759 100%)";
       } else {
-        feedbackEl.innerText = "📣 뒤꿈치를 더 들어주세요!";
+        feedbackEl.innerText = "📣 엉덩이를 더 낮춰보세요!";
+        feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #FF3B30 100%)";
         frameCount = 0;
       }
     }
+
     document.getElementById("startBtn").onclick = () => {
       startCamera();
       isExercising = true;
@@ -79,24 +305,44 @@
       document.getElementById("startBtn").style.display = "none";
       document.getElementById("endBtn").style.display = "inline-block";
       feedbackEl.innerText = "📷 자세 인식 시작!";
+      feedbackEl.style.background = "linear-gradient(90deg, #232526 60%, #007AFF 100%)";
     };
+
     document.getElementById("endBtn").onclick = () => {
       isExercising = false;
       const endTime = new Date();
       const duration = Math.round((endTime - startTime) / 1000);
+
       const result = {
-        exercise: "카프레이즈",
+        exercise: "플랭크",
         score: Math.min(100, correctCount),
         reps: repCount,
         duration,
         timestamp: endTime.toISOString(),
+        savedAt: endTime.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
       };
+
       if (window.ReactNativeWebView?.postMessage) {
         window.ReactNativeWebView.postMessage(JSON.stringify(result));
       }
+
       document.getElementById("endBtn").style.display = "none";
+      document.getElementById("afterButtons").style.display = "flex";
       feedbackEl.innerText = "";
       scoreEl.innerText = "점수: 0점";
+    };
+
+    document.getElementById("continueBtn").onclick = () => {
+      location.reload();
+    };
+
+    document.getElementById("dashboardBtn").onclick = () => {
+      if (window.ReactNativeWebView?.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: "navigate",
+          target: "Dashboard"
+        }));
+      }
     };
   </script>
 </body>
