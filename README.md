@@ -32,13 +32,13 @@ demo 영상 : https://drive.google.com/file/d/1-VenCzWuL7itRpZof914zgl9UlQ43Xv-/
 
 ---
 
-## 설치 및 실행 방법 (Reproducible Setup)
+## How to install 
 
 ### 1. 프로젝트 클론
 
 ```bash
-git clone https://github.com/your-team/senior-health-app.git
-cd senior-health-app
+git clone https://github.com/zion0117/my-project.git
+cd my-project
 ```
 
 ### 2. 의존성 설치
@@ -47,21 +47,7 @@ cd senior-health-app
 npm install
 ```
 
-### 3. 환경 변수 설정
-
-`.env` 파일을 루트에 생성하고 다음 값을 넣어주세요:
-
-```env
-GOOGLE_PLACES_API_KEY=your_key
-NAVER_CLIENT_ID=your_client_id
-NAVER_CLIENT_SECRET=your_client_secret
-FIREBASE_API_KEY=...
-...
-```
-
-> `.env.example` 파일 참고
-
-### 4. 개발 서버 실행
+### 3. 개발 서버 실행
 
 ```bash
 npx expo start
@@ -71,21 +57,31 @@ npx expo start
 
 ---
 
-##  EAS 빌드
+##  How to build
 
+EAS 빌드
 > 이 앱은 Custom Workflow를 사용합니다. 로컬 또는 서버에서 EAS 빌드 가능.
 
-### Android APK 빌드 (개발용)
+### 1. EAS-CLI 설치 및 로그인 (최초 1회)
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+### 2-1. Android APK 빌드 (개발용)
 
 ```bash
 eas build --profile development --platform android
 ```
 
-### AAB 빌드 (Play 스토어 제출용)
+### 2-2. AAB 빌드 (Play 스토어 제출용)
 
 ```bash
 eas build --profile production --platform android
 ```
+빌드가 완료되면 Expo 계정 페이지 또는 터미널에 출력되는 링크를 통해 .apk 파일을 다운로드할 수 있습니다.
+
 
 ---
 ##  테스트된 환경
