@@ -96,14 +96,20 @@ eas build --profile production --platform android
 
 ---
 
-## 데이터 설명 (Description of Data)
+## 테스트 계정
+- id: test@test.com
+  pw: 123456
+  
+---
+
+## Description of Data
 - 이 프로젝트는 Firebase Firestore를 실시간 데이터베이스로 사용합니다.
 - 별도의 샘플 데이터 파일(.csv, .json 등)은 필요하지 않습니다.
 - 앱 설치 및 실행 후, 회원가입과 기능 사용(운동, 게시글 작성 등)을 통해 사용자 데이터가 DB에 자동으로 생성 및 저장됩니다.
 
 ---
 
-## 사용된 주요 오픈소스 및 패키지
+## Description of used open source and package
 
 - @mediapipe/pose: 실시간 자세 인식을 위한 핵심 라이브러리
 - react-native-webview: 앱 내에서 외부 웹 콘텐츠(자세 교정 화면)를 표시하기 위해 사용
