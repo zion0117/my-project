@@ -7,7 +7,19 @@ import { db } from "./firebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-const exercises: Record<string, string[]> = {
+// 부위별 아이콘 매핑
+const partIconMap = {
+  허리: "body-outline",
+  무릎: "walk-outline",
+  어깨: "accessibility-outline",
+  팔: "barbell-outline",
+  등: "fitness-outline",
+  복부: "ellipse-outline",
+  엉덩이: "female-outline",
+  종아리: "footsteps-outline",
+};
+
+const exercises = {
   허리: ["플랭크"],
   무릎: ["스쿼트"],
   어깨: ["숄더 프레스"],
@@ -19,12 +31,12 @@ const exercises: Record<string, string[]> = {
 };
 
 export default function ExerciseRecommendation() {
-  const [selectedParts, setSelectedParts] = useState<string[]>([]);
+  const [selectedParts, setSelectedParts] = useState([]);
   const [loading, setLoading] = useState(false);
   const auth = getAuth();
   const router = useRouter();
 
-  const toggleBodyPart = (part: string) => {
+  const toggleBodyPart = (part) => {
     if (selectedParts.includes(part)) {
       setSelectedParts(selectedParts.filter((p) => p !== part));
     } else {
@@ -37,7 +49,7 @@ export default function ExerciseRecommendation() {
   };
 
   const getRecommendations = () => {
-    const result: Record<string, string> = {};
+    const result = {};
     selectedParts.forEach((part) => {
       const list = exercises[part];
       const random = list[Math.floor(Math.random() * list.length)];
@@ -87,16 +99,32 @@ export default function ExerciseRecommendation() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>💪 운동하고 싶은 부위를 선택하세요 (최대 8개)</Text>
-
+      <Text style={styles.title}>
+        💪 운동하고 싶은 부위를{"\n"}선택하세요 (최대 8개)
+      </Text>
       <View style={styles.grid}>
         {Object.keys(exercises).map((part) => (
           <TouchableOpacity
             key={part}
             onPress={() => toggleBodyPart(part)}
-            style={[styles.partButton, selectedParts.includes(part) && styles.selectedButton]}
+            style={[
+              styles.partButton,
+              selectedParts.includes(part) && styles.selectedButton,
+            ]}
+            activeOpacity={0.85}
           >
-            <Text style={[styles.partText, selectedParts.includes(part) && styles.selectedText]}>
+            <Ionicons
+              name={partIconMap[part]}
+              size={24}
+              color={selectedParts.includes(part) ? "#fff" : "#007AFF"}
+              style={{ marginBottom: 4 }}
+            />
+            <Text
+              style={[
+                styles.partText,
+                selectedParts.includes(part) && styles.selectedText,
+              ]}
+            >
               {part}
             </Text>
           </TouchableOpacity>
@@ -104,10 +132,10 @@ export default function ExerciseRecommendation() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 30 }} />
+        <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 36 }} />
       ) : (
         <>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.85}>
             <Text style={styles.submitText}>🏋️‍♀️ 운동 추천 받기</Text>
           </TouchableOpacity>
 
@@ -116,7 +144,7 @@ export default function ExerciseRecommendation() {
               <Text style={styles.recommendTitle}>추천 운동</Text>
               {Object.entries(recommendations).map(([part, exercise]) => (
                 <Text key={part} style={styles.exerciseText}>
-                  ▶ {part}: {exercise}
+                  <Ionicons name="checkmark-circle" size={17} color="#007AFF" /> {part}: {exercise}
                 </Text>
               ))}
             </View>
@@ -129,79 +157,116 @@ export default function ExerciseRecommendation() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: "#fff",
+    padding: 28,
+    backgroundColor: "#F7F8FA",
     alignItems: "center",
+    minHeight: "100%",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    fontFamily: "GmarketSansMedium",
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: "900",
+    fontFamily: "GmarketSansBold", // 폰트 없으면 이 줄 삭제!
+    color: "#1A237E",
+    marginBottom: 32,
     textAlign: "center",
+    lineHeight: 36,
+    letterSpacing: 0.5,
+    textShadowColor: "#B3C6FF",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    // backgroundColor: "#E3E9FF", // 배경 강조 원하면 주석 해제
+    // borderRadius: 12,
+    // paddingHorizontal: 8,
+    // paddingVertical: 4,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
+    marginBottom: 16,
   },
   partButton: {
-    backgroundColor: "#eee",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    margin: 6,
-    borderRadius: 8,
+    backgroundColor: "#fff",
+    paddingVertical: 18,
+    paddingHorizontal: 22,
+    margin: 8,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    shadowColor: "#007AFF",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    alignItems: "center",
+    minWidth: 92,
+    minHeight: 72,
+    justifyContent: "center",
   },
   selectedButton: {
     backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 4,
   },
   partText: {
-    color: "#333",
+    color: "#007AFF",
     fontWeight: "600",
     fontFamily: "GmarketSansMedium",
+    fontSize: 16,
+    textAlign: "center",
   },
   selectedText: {
     color: "#fff",
-    fontFamily: "GmarketSansMedium",
-  },
-  submitButton: {
-    marginTop: 30,
-    backgroundColor: "#FF5722",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  submitText: {
-    color: "#fff",
-    fontSize: 16,
     fontWeight: "bold",
     fontFamily: "GmarketSansMedium",
   },
-recommendationBox: {
-  width: "90%",
-  backgroundColor: "#fff", // ✨ 흰 배경
-  padding: 24,
-  borderRadius: 16,
-  alignItems: "center",
-  shadowColor: "#000",
-  shadowOpacity: 0.1,
-  shadowRadius: 8,
-  shadowOffset: { width: 0, height: 4 },
-  elevation: 5,
-},
-recommendTitle: {
-  fontSize: 20,
-  fontWeight: "bold",
-  fontFamily: "GmarketSansMedium",
-  marginBottom: 14,
-  color: "#007AFF",
-},
-exerciseText: {
-  fontSize: 16,
-  fontWeight: "600",
-  fontFamily: "GmarketSansMedium",
-  color: "#333",
-  marginBottom: 6,
-},
-
+  submitButton: {
+    marginTop: 36,
+    backgroundColor: "#FF5722",
+    paddingVertical: 16,
+    paddingHorizontal: 44,
+    borderRadius: 20,
+    shadowColor: "#FF5722",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  submitText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
+    letterSpacing: 1,
+  },
+  recommendationBox: {
+    width: "97%",
+    backgroundColor: "#F0F6FF",
+    padding: 28,
+    borderRadius: 20,
+    alignItems: "center",
+    shadowColor: "#007AFF",
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+    marginTop: 36,
+  },
+  recommendTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    fontFamily: "GmarketSansMedium",
+    marginBottom: 18,
+    color: "#007AFF",
+  },
+  exerciseText: {
+    fontSize: 17,
+    fontWeight: "600",
+    fontFamily: "GmarketSansMedium",
+    color: "#333",
+    marginBottom: 10,
+    textAlign: "center",
+  },
 });
