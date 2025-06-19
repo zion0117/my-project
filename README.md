@@ -41,11 +41,33 @@ git clone https://github.com/zion0117/my-project.git
 cd C:\Users\user\my-project\hie-main
 ```
 
-### 2. 의존성 설치
+### 2. 의존성 설치(package.json 파일에 명시된 모든 라이브러리 한 번에 설치가능)
 
 ```bash
 npm install
 ```
+## 주요 의존성 목록
+
+| 패키지명                                    | 설명                                    |
+|---------------------------------------------|-----------------------------------------|
+| react, react-native                        | 리액트 네이티브 앱의 핵심 프레임워크    |
+| expo                                       | Expo 플랫폼 및 모듈                     |
+| expo-router                                | 화면 라우팅 및 내비게이션               |
+| @expo/vector-icons                         | 아이콘                                  |
+| @react-navigation/native, bottom-tabs      | 내비게이션/탭 구조                      |
+| firebase                                   | 실시간 DB, 인증 등 백엔드 서비스        |
+| @mediapipe/pose, @tensorflow-models/pose-detection | 실시간 자세 인식(운동 자세 교정) |
+| react-native-webview                       | 앱 내 웹뷰(AR/운동 자세 교정 화면)      |
+| expo-notifications                         | 푸시 알림                               |
+| expo-location                              | 위치 기반 서비스(Google Maps 등)        |
+| @react-native-community/datetimepicker      | 날짜/시간 선택 UI                       |
+| axios                                      | 외부 API 통신                           |
+| lottie-react-native                        | 애니메이션                              |
+| openai                                     | 챗봇 등 AI API 연동                     |
+| react-native-maps                          | 지도/위치 기반 기능                     |
+| react-native-chart-kit, react-native-svg    | 데이터 시각화(그래프 등)                |
+| expo-camera, expo-image-picker, expo-image-manipulator | 카메라/이미지 처리           |
+
 
 ### 3. 개발 서버 실행
 
@@ -55,8 +77,36 @@ npx expo start
 
 > Android/iOS 시뮬레이터 또는 실제 디바이스에서 테스트 가능
 
----
 
+---
+## 간편 빌드 및 실행 방법
+
+1. **Expo Go 앱 설치**
+   - 구글 플레이스토어(또는 앱스토어)에서 **"Expo Go"** 어플리케이션을 검색하여 설치합니다.
+
+2. **로컬 디바이스와 PC 연결**
+   - 스마트폰과 PC가 **동일한 Wi-Fi 네트워크**에 연결되어 있어야 합니다.
+   - (USB 연결은 필요하지 않지만, 개발자 옵션/USB 디버깅을 켜면 더 안정적입니다.)
+
+3. **개발 서버 실행**
+   - 터미널에서 프로젝트 폴더로 이동 후 아래 명령어 실행:
+     ```
+     npx expo start
+     ```
+   - QR코드가 터미널 또는 웹 브라우저에 표시됩니다.
+
+4. **Expo Go 앱으로 실행**
+   - 스마트폰에서 Expo Go 앱을 실행한 뒤,  
+     `npx expo start` 명령어로 표시된 **QR코드**를 스캔합니다.
+   - 앱이 스마트폰에서 바로 실행됩니다.
+
+> 별도의 빌드 과정 없이, 코드를 수정하면 스마트폰에서 바로 실시간으로 반영됩니다.
+>  
+> **Tip:**  
+> - Android/iOS 모두 지원  
+> - Expo Go 앱은 Play스토어/앱스토어에서 무료로 다운로드 가능
+
+---
 ##  How to build
 
 EAS 빌드
@@ -95,7 +145,10 @@ eas build --profile production --platform android
 | Expo CLI | 최신 안정 버전 (`npx expo --version`) |
 
 ---
+## 테스트 계정
+모든 구글계정으로 로그인 후 실행가능
 
+---
 ## Description of Data
 - 이 프로젝트는 Firebase Firestore를 실시간 데이터베이스로 사용합니다.
 - 별도의 샘플 데이터 파일(.csv, .json 등)은 필요하지 않습니다.
